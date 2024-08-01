@@ -24,9 +24,7 @@ class PhidgetData:
         self.__filename = filename
 
     def save_data(self):
-        f = open(self.__filename + ".csv", "wb")
-        f.write('time[ms], data\n'.encode())
-        np.savetxt(f, np.array([self.timestamp, self.data]), delimiter=",")
+        np.savetxt(self.__filename + ".csv", np.array([self.timestamp, self.data]).T, delimiter=",")
 
 
 class PhidgetInterface:
@@ -72,18 +70,17 @@ class PhidgetInterface:
     def clear_data(self):
         self.data[0].reset()
         self.data[1].reset()
-        self.__start_time_set = False
+
+        if self.get_connected():
+            self.__start_time_set = True
+            self.__start_time = int(round(time.time() * 1000))
+        else:
+            self.__start_time_set = False
 
     def __on_voltage_change(self, phidget_vri, voltage_ratio):
-        self.data[phidget_vri.getChannel()].update_data(int(round(time.time() * 1000)), voltage_ratio)
-
-    def connect_button_handler(self, button_instance: QPushButton):
-        if self.__connected:
-            button_instance.setText("Connected")
-            self.disconnect()
-        else:
-            button_instance.setText("Disconnected")
-            self.connect()
+        self.data[phidget_vri.getChannel()].update_data(int(round(time.time() * 1000))-self.__start_time, voltage_ratio)
 
     def set_file_name(self, file_name: str):
         self.__file_name = file_name
+        self.data[0].set_filename(self.__file_name + "_channel_0")
+        self.data[1].set_filename(self.__file_name + "_channel_1")

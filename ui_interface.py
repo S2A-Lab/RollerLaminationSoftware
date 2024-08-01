@@ -14,7 +14,7 @@ from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
 
-class QtPlotterUI(QWidget):
+class UIInterface(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -38,13 +38,12 @@ class QtPlotterUI(QWidget):
 
         main_layout = QVBoxLayout()
 
-        # Initialize title bar
+        # Initialize titlebar
         titlebar_layout = QHBoxLayout()
         self.__refresh_label = QLabel('Refresh Rate')
         self.__refresh_rate_box = QLineEdit('300')
         self.__unit_label = QLabel('ms')
         self.__connect_label = QLabel('Device')
-
         self.__connect_button = QPushButton('Connect', self)
 
         titlebar_layout.addWidget(self.__refresh_label)
@@ -54,26 +53,30 @@ class QtPlotterUI(QWidget):
         titlebar_layout.addWidget(self.__connect_button)
 
         # Initialize main layout
-        main_layout.addLayout(titlebar_layout)
         self.__control_layouts = [ControlLayout(), ControlLayout()]
 
-        # Initialize main layout
+        # Initialize save layout
         self.__file_name_textfield = QLineEdit('PhidgetData')
         self.__file_save_button = QPushButton('Save Data')
         save_layout = QHBoxLayout()
         save_layout.addWidget(self.__file_name_textfield)
         save_layout.addWidget(self.__file_save_button)
 
+        main_layout.addLayout(titlebar_layout)
         main_layout.addLayout(self.__control_layouts[0])
         main_layout.addLayout(self.__control_layouts[1])
         main_layout.addLayout(save_layout)
         self.setLayout(main_layout)
 
-    def set_connect_button_function(self, input_function):
+    def set_callback_connect_button_clicked(self, input_function):
         self.__connect_button.clicked.connect(lambda: input_function(self.__connect_button))
 
-    def set_interval_input_function(self, input_function):
+    def set_callback_interval_textfield_change(self, input_function):
         self.__refresh_rate_box.returnPressed.connect(lambda: input_function(self.__refresh_rate_box))
+
+    def set_callback_save_button_clicked(self, input_function):
+        self.__file_save_button.clicked.connect(lambda: input_function(self.__file_save_button,
+                                                                       self.__file_name_textfield))
 
     def update_plot(self, data_ref0: PhidgetData, data_actual0: PhidgetData, data_ref1: PhidgetData,
                     data_actual1: PhidgetData):
@@ -119,9 +122,12 @@ class ControlLayout(QVBoxLayout):
     def __init__(self):
         super().__init__()
         self.__set_button = QPushButton('Set')
-        self.__kp_textfield = QLineEdit('Kp')
-        self.__ki_textfield = QLineEdit('Ki')
-        self.__kd_textfield = QLineEdit('Kd')
+        self.__kp_textfield = QLineEdit()
+        self.__ki_textfield = QLineEdit()
+        self.__kd_textfield = QLineEdit()
+        self.__kp_textfield.setPlaceholderText('Kp')
+        self.__ki_textfield.setPlaceholderText('Ki')
+        self.__kd_textfield.setPlaceholderText('Kd')
         self.__plot = PlotCanvas(width=5, height=4)
         self.addWidget(self.__plot)
         input_layout = QHBoxLayout()

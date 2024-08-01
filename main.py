@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication
-from ui_service import *
+from main_service import *
 import sys
 
 if __name__ == '__main__':
