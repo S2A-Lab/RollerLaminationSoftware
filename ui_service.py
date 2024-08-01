@@ -1,29 +1,33 @@
-import sys
-import time
-from multiprocessing import Process, Queue
-
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QMainWindow, QLineEdit
 
 from phidget_interface import PhidgetInterface
 from qt_plotter import QtPlotterUI
 
 
-class UIService:
-
+class UIService(QMainWindow):
     def __init__(self):
-        app = QApplication(sys.argv)
+        super().__init__()
 
-        self.ex = QtPlotterUI()
-        self.ex.set_connect_button_function(PhidgetInterface.connect_button_handler)
-        task = Process(target=self.__plotter_update_thread)
-        task.start()
-        task.join()
-        self.ex.show()
+        self.ui_interface = QtPlotterUI()
+        self.setCentralWidget(self.ui_interface)
+        self.phidget_interface = PhidgetInterface()
+        self.resize(500, 750)
 
-        sys.exit(app.exec_())
+        self.ui_interface.set_connect_button_function(self.phidget_interface.connect_button_handler)
+        self.ui_interface.set_interval_input_function(self.__set_interval_handler)
 
-    def __plotter_update_thread(self):
-        while True:
-            if PhidgetInterface.get_connected(PhidgetInterface):
-                self.ex.update_plot(PhidgetInterface.data[0], PhidgetInterface.data[1])
-            time.sleep(1)
+        self.ui_interface.show()
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.run_tasks)
+        self.timer.start(300)
+
+    def run_tasks(self):
+        if self.phidget_interface.get_connected():
+            self.ui_interface.update_plot(self.phidget_interface.data[0], self.phidget_interface.data[1],
+                                          self.phidget_interface.data[0], self.phidget_interface.data[1])
+
+    def __set_interval_handler(self, textfield: QLineEdit):
+        if textfield.text().isnumeric():
+            self.timer.setInterval(int(textfield.text()))
