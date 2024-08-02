@@ -45,7 +45,7 @@ class PIDControllersModule(QObject):
                 elif self.prev_output_1 - self.output_1 <= 0:
                     self.output_0 = self.output_1 - self.watchdog_threshold
 
-            self.jrk_interface.send_target(self.output_0, self.output_1)
+            self.jrk_interface.send_target(int(self.output_0), int(self.output_1))
             self.prev_output_0 = self.output_0
             self.prev_output_1 = self.output_1
 
