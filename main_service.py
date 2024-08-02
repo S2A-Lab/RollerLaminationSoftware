@@ -137,7 +137,7 @@ class MainService(QMainWindow):
         else:
             QMessageBox.warning(QMessageBox(),
                                 'Warning',
-                                'Please check if parameters in axis 0 contains non-numeric characters')
+                                'Please check if parameters in axis 0 contain non-numeric characters')
 
     def __pid_set_button_1_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
         if kp_str.isnumeric() and ki_str.isnumeric() and kd_str.isnumeric() and i_lim_str.isnumeric():
@@ -149,7 +149,7 @@ class MainService(QMainWindow):
         else:
             QMessageBox.warning(QMessageBox(),
                                 'Warning',
-                                'Please check if parameters in axis 1 contains non-numeric characters')
+                                'Please check if parameters in axis 1 contain non-numeric characters')
 
     def __target_set_button_clicked_handler(self, sink: str):
         targets = self.ui_interface.get_targets()
@@ -166,4 +166,4 @@ class MainService(QMainWindow):
         else:
             QMessageBox.warning(QMessageBox(),
                                 'Warning',
-                                'Please check if targets contains non-numeric characters')
+                                'Please check if targets contain non-numeric characters')
