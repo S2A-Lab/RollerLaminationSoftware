@@ -1,6 +1,9 @@
+import time
+
 import serial
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import QObject
 from serial.tools import list_ports
+from datastruct.datastruct_timeseries import Timeseries
 
 
 def get_ports():
@@ -11,7 +14,7 @@ class JRKInterface(QObject):
     serial_port = serial.Serial()
     __connected = False
 
-    def __init__(self) -> object:
+    def __init__(self):
         super().__init__()
         self.serial_port = serial.Serial()
 
@@ -26,5 +29,5 @@ class JRKInterface(QObject):
     def get_connected(self):
         return self.__connected
 
-    def send_target(self, target1, target2):
-        self.serial_port.writelines([(str(target1) + "," + str(target2)).encode()])
+    def send_target(self, target0, target1):
+        self.serial_port.writelines([(str(target0) + "," + str(target1)).encode()])

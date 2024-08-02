@@ -8,7 +8,7 @@ from modules.module_connect import ConnectModule
 from modules.module_device_update import DeviceUpdateModule
 from modules.module_pid_controllers import PIDControllersModule
 from modules.module_plot_update import PlotUpdateModule
-from modules.module_save import SaveModule
+from modules.module_data_logger import DataLoggerModule
 
 
 class MainService(QMainWindow):
@@ -16,34 +16,52 @@ class MainService(QMainWindow):
         super().__init__()
 
         self.setWindowTitle('Laminator UI')
+        # Initialize interfaces
         self.ui_interface = UIInterface()
         self.phidget_interface = PhidgetInterface()
         self.jrk_interface = JRKInterface()
 
-        self.plot_update_module = PlotUpdateModule(self.phidget_interface, self.ui_interface)
+        # Initialize PID controllers
+        self.linear_actuator_pid_module = PIDControllersModule(self.phidget_interface, self.jrk_interface)
+
+        # Initialize data logger
+        self.data_logger_module = DataLoggerModule(self.phidget_interface, self.linear_actuator_pid_module)
+
+        # self.plot_update_module = PlotUpdateModule(self.phidget_interface, self.ui_interface)
 
         self.setCentralWidget(self.ui_interface)
         self.resize(500, 750)
 
+        # Binding UI handlers
         self.ui_interface.set_callback_connect_button_clicked(self.__connect_button_clicked_handler)
         self.ui_interface.set_callback_interval_textfield_change(self.__interval_textfield_handler)
         self.ui_interface.set_callback_save_button_clicked(self.__save_button_clicked_handler)
         self.ui_interface.set_callback_clear_button_clicked(self.__clear_button_clicked_handler)
 
-        self.ui_interface.show()
-        self.__start_update_plot_thread()
-        self.__start_device_update_thread()
-        self.__start_linear_actuator_pid_controller_thread()
         self.ui_interface.get_control_layouts(0).set_button_handler(self.__pid_set_button_0_clicked_handler)
         self.ui_interface.get_control_layouts(1).set_button_handler(self.__pid_set_button_1_clicked_handler)
-
         self.ui_interface.get_control_layouts(0).set_target_handler(self.__target_set_button_clicked_handler)
         self.ui_interface.get_control_layouts(1).set_target_handler(self.__target_set_button_clicked_handler)
 
-    def __start_update_plot_thread(self):
+        # Start threads
+        self.__start_data_logger_thread()
+        self.__start_serial_device_update_thread()
+        self.__start_linear_actuator_pid_controller_thread()
+        self.__start_update_plot_thread()
 
+        # Show UI
+        self.ui_interface.show()
+
+    def __start_data_logger_thread(self):
+        self.data_logger_thread = QThread(self)
+        self.data_logger_module.moveToThread(self.data_logger_thread)
+        self.data_logger_thread.started.connect(self.data_logger_thread.run)
+        self.data_logger_thread.finished.connect(self.data_logger_thread.deleteLater)
+        self.data_logger_thread.start()
+
+    def __start_update_plot_thread(self):
         self.plot_update_thread = QThread()
-        self.plot_update_module = PlotUpdateModule(self.phidget_interface, self.ui_interface)
+        self.plot_update_module = PlotUpdateModule(self.data_logger_module, self.ui_interface)
         self.plot_update_module.moveToThread(self.plot_update_thread)
         self.plot_update_thread.started.connect(self.plot_update_module.run)
         self.plot_update_module.finished.connect(self.plot_update_thread.quit)
@@ -51,7 +69,7 @@ class MainService(QMainWindow):
         self.plot_update_thread.finished.connect(self.plot_update_thread.deleteLater)
         self.plot_update_thread.start()
 
-    def __start_device_update_thread(self):
+    def __start_serial_device_update_thread(self):
         # Start device update thread
         self.device_update_thread = QThread()
 
@@ -66,7 +84,7 @@ class MainService(QMainWindow):
 
     def __start_linear_actuator_pid_controller_thread(self):
         self.linear_actuator_pid_thread = QThread()
-        self.linear_actuator_pid_module = PIDControllersModule(self.phidget_interface, self.jrk_interface)
+
         self.linear_actuator_pid_module.moveToThread(self.linear_actuator_pid_thread)
 
         self.linear_actuator_pid_thread.started.connect(self.linear_actuator_pid_module.run)
@@ -79,21 +97,13 @@ class MainService(QMainWindow):
             self.plot_update_module.change_interval(int(textfield.text()))
 
     def __filename_textfield_handler(self, textfield: QLineEdit):
-        self.phidget_interface.set_file_name(textfield.text())
+        self.data_logger_module.set_file_name(textfield.text())
 
     def __save_button_clicked_handler(self, button: QPushButton, textfield: QLineEdit):
-        self.phidget_interface.set_file_name(textfield.text())
-        self.save_thread = QThread()
-        self.save_module = SaveModule(self.phidget_interface)
-        self.save_module.moveToThread(self.save_thread)
-        self.save_thread.started.connect(self.save_module.run)
-        self.save_module.finished.connect(self.save_thread.quit)
-        self.save_module.finished.connect(self.save_module.deleteLater)
-        self.save_thread.finished.connect(self.save_thread.deleteLater)
-
-        self.save_thread.start()
         button.setEnabled(False)
-        self.save_thread.finished.connect(lambda: button.setEnabled(True))
+        self.data_logger_module.set_file_name(textfield.text())
+        save_worker = self.data_logger_module.save_data()
+        save_worker.finished.connect(lambda: button.setEnabled(True))
 
     def __connect_button_clicked_handler(self, button: QPushButton):
         self.connect_thread = QThread(self)
@@ -113,14 +123,10 @@ class MainService(QMainWindow):
         self.connect_thread.start()
 
         button.setEnabled(False)
-
         self.connect_thread.finished.connect(lambda: button.setEnabled(True))
 
     def __clear_button_clicked_handler(self, button: QPushButton):
-        self.phidget_interface.clear_data()
-
-    def __clear_button_handler(self):
-        self.phidget_interface.clear_data()
+        self.data_logger_module.clear_data()
 
     def __pid_set_button_0_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
         if kp_str.isnumeric() and ki_str.isnumeric() and kd_str.isnumeric() and i_lim_str.isnumeric():
@@ -162,4 +168,3 @@ class MainService(QMainWindow):
             QMessageBox.warning(QMessageBox(),
                                 'Warning',
                                 'Please check if targets contains non-numeric characters')
-
