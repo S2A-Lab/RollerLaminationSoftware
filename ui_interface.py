@@ -1,16 +1,12 @@
-from phidget_interface import PhidgetData
+from timeseries import *
 from typing import Callable
-
-import matplotlib
-
-matplotlib.use('Qt5Agg')
-
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rcParams
+import matplotlib
 
+matplotlib.use('Qt5Agg')
 rcParams.update({'figure.autolayout': True})
 
 
@@ -19,6 +15,7 @@ class UIInterface(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.__file_clear_button = None
         self.__file_save_button = None
         self.__file_name_textfield = None
         self.__unit_label = None
@@ -33,7 +30,6 @@ class UIInterface(QWidget):
         self.ui_update_functions = []
 
     def init_ui(self):
-        self.setWindowTitle('Laminator UI')
         self.setGeometry(100, 100, 800, 600)
 
         main_layout = QVBoxLayout()
@@ -58,8 +54,10 @@ class UIInterface(QWidget):
         # Initialize save layout
         self.__file_name_textfield = QLineEdit('PhidgetData')
         self.__file_save_button = QPushButton('Save Data')
+        self.__file_clear_button = QPushButton('Clear')
         save_layout = QHBoxLayout()
         save_layout.addWidget(self.__file_name_textfield)
+        save_layout.addWidget(self.__file_clear_button)
         save_layout.addWidget(self.__file_save_button)
 
         main_layout.addLayout(titlebar_layout)
@@ -78,8 +76,11 @@ class UIInterface(QWidget):
         self.__file_save_button.clicked.connect(lambda: input_function(self.__file_save_button,
                                                                        self.__file_name_textfield))
 
-    def update_plot(self, data_ref0: PhidgetData, data_actual0: PhidgetData, data_ref1: PhidgetData,
-                    data_actual1: PhidgetData):
+    def set_callback_clear_button_clicked(self, input_function):
+        self.__file_clear_button.clicked.connect(lambda: input_function(self.__file_clear_button))
+
+    def update_plot(self, data_ref0: Timeseries, data_actual0: Timeseries, data_ref1: Timeseries,
+                    data_actual1: Timeseries):
         self.__control_layouts[0].update_plot(data_ref0, data_actual0)
         self.__control_layouts[1].update_plot(data_ref1, data_actual1)
 
@@ -96,14 +97,14 @@ class PlotCanvas(FigureCanvas):
         self.init_plot()
 
     def init_plot(self):
-        self.line_actual, = self.axes.plot([], [], 'b--')
-        self.line_ref, = self.axes.plot([], [], 'r-')
+        self.line_actual, = self.axes.plot([], [], 'r-')
+        self.line_ref, = self.axes.plot([], [], 'b--')
         self.axes.set_xlabel('Time [sec]')  # Set x-axis label
         self.axes.set_ylabel('Force [N]')  # Set y-axis label
         self.axes.grid(True, linestyle='--', alpha=0.7)  # Enable grid with dashed lines
         self.fig.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)  # Adjust margins
 
-    def update_data(self, data_ref: PhidgetData, data_actual: PhidgetData):
+    def update_data(self, data_ref: Timeseries, data_actual: Timeseries):
 
         if len(data_ref.data) > 0:
             self.line_ref.set_ydata(data_ref.data)
@@ -137,7 +138,7 @@ class ControlLayout(QVBoxLayout):
         input_layout.addWidget(self.__set_button)
         self.addLayout(input_layout)
 
-    def update_plot(self, data_ref: PhidgetData, data_actual: PhidgetData):
+    def update_plot(self, data_ref: Timeseries, data_actual: Timeseries):
         self.__plot.update_data(data_ref, data_actual)
 
     def set_button_handler(self, input_function: Callable[[str, str, str], None]):

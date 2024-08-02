@@ -1,30 +1,7 @@
-import numpy as np
+from timeseries import *
 from Phidget22.Devices.VoltageRatioInput import *
+from pathlib import Path
 import time
-
-from PyQt5.QtWidgets import QPushButton
-
-
-class PhidgetData:
-    def __init__(self, filename):
-        self.data = []
-        self.timestamp = []
-        self.__filename = filename
-
-    def update_data(self, timestamp, data):
-        self.data.append(data)
-        self.timestamp.append(timestamp)
-
-    def reset(self):
-        self.__filename = ""
-        self.timestamp = []
-        self.data = []
-
-    def set_filename(self, filename):
-        self.__filename = filename
-
-    def save_data(self):
-        np.savetxt(self.__filename + ".csv", np.array([self.timestamp, self.data]).T, delimiter=",")
 
 
 class PhidgetInterface:
@@ -35,7 +12,7 @@ class PhidgetInterface:
 
     # Data Management
     __file_name = "PhidgetData"
-    data = [PhidgetData(__file_name + "_channel_0"), PhidgetData(__file_name + "_channel_1")]
+    data = [Timeseries(__file_name + "_channel_0"), Timeseries(__file_name + "_channel_1")]
     __start_time = 0
     __start_time_set = False
 
@@ -48,9 +25,10 @@ class PhidgetInterface:
         self.__voltage_ratio_input_1.setOnVoltageRatioChangeHandler(self.__on_voltage_change)
         self.__voltage_ratio_input_0.openWaitForAttachment(1000)
         self.__voltage_ratio_input_1.openWaitForAttachment(1000)
-        self.data[0].set_filename(self.__file_name + "_channel_0")
-        self.data[1].set_filename(self.__file_name + "_channel_1")
+        self.data[0].set_filename("./data/" + self.__file_name + "_channel_0")
+        self.data[1].set_filename("./data/" + self.__file_name + "_channel_1")
         self.__connected = True
+        Path("./data").mkdir(parents=True, exist_ok=True)
         if not self.__start_time_set:
             self.__start_time = int(round(time.time() * 1000))
             self.__start_time_set = True
@@ -78,9 +56,11 @@ class PhidgetInterface:
             self.__start_time_set = False
 
     def __on_voltage_change(self, phidget_vri, voltage_ratio):
-        self.data[phidget_vri.getChannel()].update_data(int(round(time.time() * 1000))-self.__start_time, voltage_ratio)
+        self.data[phidget_vri.getChannel()].update_data(int(round(time.time() * 1000)) - self.__start_time,
+                                                        voltage_ratio)
 
     def set_file_name(self, file_name: str):
         self.__file_name = file_name
-        self.data[0].set_filename(self.__file_name + "_channel_0")
-        self.data[1].set_filename(self.__file_name + "_channel_1")
+
+        self.data[0].set_filename("./data/" + self.__file_name + "_channel_0")
+        self.data[1].set_filename("./data/" + self.__file_name + "_channel_1")

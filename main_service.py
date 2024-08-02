@@ -1,4 +1,3 @@
-import time
 
 from PyQt5.QtCore import QTimer, QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton
@@ -38,7 +37,7 @@ class ConnectWorker(QObject):
 class UIService(QMainWindow):
     def __init__(self):
         super().__init__()
-
+        self.setWindowTitle('Laminator UI')
         self.ui_interface = UIInterface()
         self.setCentralWidget(self.ui_interface)
         self.phidget_interface = PhidgetInterface()
@@ -46,11 +45,10 @@ class UIService(QMainWindow):
 
         self.ui_interface.set_callback_connect_button_clicked(self.__connect_button_clicked_handler)
         self.ui_interface.set_callback_interval_textfield_change(self.__interval_button_handler)
+        self.ui_interface.set_callback_save_button_clicked(self.__save_button_clicked_handler)
+        self.ui_interface.set_callback_clear_button_clicked(self.__clear_button_clicked_handler)
 
         self.ui_interface.show()
-
-        self.ui_interface.set_callback_save_button_clicked(self.__save_button_clicked_handler)
-
         self.timer = QTimer()
         self.timer.timeout.connect(self.run_tasks)
         self.timer.start(300)
@@ -99,6 +97,9 @@ class UIService(QMainWindow):
         button.setEnabled(False)
 
         self.connect_thread.finished.connect(lambda: button.setEnabled(True))
+
+    def __clear_button_clicked_handler(self, button: QPushButton):
+        self.phidget_interface.clear_data()
 
     def __clear_button_handler(self):
         self.phidget_interface.clear_data()
