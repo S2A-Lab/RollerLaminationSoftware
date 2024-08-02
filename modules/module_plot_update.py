@@ -1,5 +1,3 @@
-import time
-
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 
 from interfaces.interface_phidget import PhidgetInterface

@@ -1,5 +1,3 @@
-import time
-
 import serial
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from serial.tools import list_ports

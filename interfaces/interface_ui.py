@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 rcParams.update({'figure.autolayout': True})
 
+
 class ControlLayout(QVBoxLayout):
     def __init__(self):
         super().__init__()
@@ -141,7 +142,7 @@ class PlotCanvas(FigureCanvas):
 
     def init_plot(self):
         self.line_actual, = self.axes.plot([], [], 'r-')
-        self.line_ref,    = self.axes.plot([], [], 'b--')
+        self.line_ref, = self.axes.plot([], [], 'b--')
         self.axes.set_xlabel('Time [sec]')  # Set x-axis label
         self.axes.set_ylabel('Force [N]')  # Set y-axis label
         self.axes.grid(True, linestyle='--', alpha=0.7)  # Enable grid with dashed lines
@@ -159,5 +160,3 @@ class PlotCanvas(FigureCanvas):
         self.axes.relim()  # Recalculate limits
         self.axes.autoscale_view(True, True, True)  # Autoscale
         self.draw()
-
-

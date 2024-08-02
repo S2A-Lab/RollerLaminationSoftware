@@ -1,6 +1,4 @@
-import time
-
-from PyQt5.QtCore import QTimer, QObject, pyqtSignal, QThread
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QMessageBox
 
 from interfaces.interface_jrk import JRKInterface, get_ports
@@ -33,7 +31,6 @@ class MainService(QMainWindow):
         self.ui_interface.set_callback_clear_button_clicked(self.__clear_button_clicked_handler)
 
         self.ui_interface.show()
-        self.timer = QTimer()
         self.__start_update_plot_thread()
         self.__start_device_update_thread()
         self.__start_linear_actuator_pid_controller_thread()
