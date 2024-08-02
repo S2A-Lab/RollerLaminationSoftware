@@ -5,6 +5,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rcParams
 import matplotlib
+import matplotlib.pyplot as plt
 
 matplotlib.use('Qt5Agg')
 rcParams.update({'figure.autolayout': True})
@@ -27,7 +28,6 @@ class ControlLayout(QVBoxLayout):
         self.__target_textfield.setPlaceholderText('Target')
         self.__set_target_button = QPushButton('Set')
         self.__plot = PlotCanvas(width=5, height=4)
-
         self.addWidget(self.__plot)
         input_layout = QHBoxLayout()
         input_layout.addWidget(self.__kp_textfield)
@@ -72,6 +72,8 @@ class UIInterface(QWidget):
         self.__refresh_label: QLabel = QLabel('Refresh Rate')
         self.__connect_button: QPushButton = QPushButton('Connect', self)
         self.__control_layouts = []
+
+        self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()
 
     def init_ui(self):

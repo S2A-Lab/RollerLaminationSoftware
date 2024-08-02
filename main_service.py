@@ -27,10 +27,9 @@ class MainService(QMainWindow):
         # Initialize data logger
         self.data_logger_module = DataLoggerModule(self.phidget_interface, self.linear_actuator_pid_module)
 
-        # self.plot_update_module = PlotUpdateModule(self.phidget_interface, self.ui_interface)
-
         self.setCentralWidget(self.ui_interface)
         self.resize(500, 750)
+        self.setMinimumSize(500, 750)
 
         # Binding UI handlers
         self.ui_interface.set_callback_connect_button_clicked(self.__connect_button_clicked_handler)
