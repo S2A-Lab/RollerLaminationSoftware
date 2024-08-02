@@ -1,4 +1,4 @@
-from data_structures.timeseries import *
+from datastruct.datastruct_timeseries import *
 from Phidget22.Devices.VoltageRatioInput import *
 from pathlib import Path
 import time

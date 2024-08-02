@@ -1,4 +1,4 @@
-from data_structures.timeseries import *
+from datastruct.datastruct_timeseries import *
 from typing import Callable
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -8,6 +8,52 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 rcParams.update({'figure.autolayout': True})
+
+class ControlLayout(QVBoxLayout):
+    def __init__(self):
+        super().__init__()
+        self.__set_button = QPushButton('Set')
+        self.__kp_textfield = QLineEdit()
+        self.__ki_textfield = QLineEdit()
+        self.__kd_textfield = QLineEdit()
+        self.__i_limit_textfield = QLineEdit()
+        self.__target_textfield = QLineEdit()
+
+        self.__kp_textfield.setPlaceholderText('Kp')
+        self.__ki_textfield.setPlaceholderText('Ki')
+        self.__kd_textfield.setPlaceholderText('Kd')
+        self.__i_limit_textfield.setPlaceholderText('i_limit')
+        self.__target_textfield.setPlaceholderText('Target')
+        self.__set_target_button = QPushButton('Set')
+        self.__plot = PlotCanvas(width=5, height=4)
+
+        self.addWidget(self.__plot)
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.__kp_textfield)
+        input_layout.addWidget(self.__ki_textfield)
+        input_layout.addWidget(self.__kd_textfield)
+        input_layout.addWidget(self.__i_limit_textfield)
+        input_layout.addWidget(self.__set_button)
+        self.addLayout(input_layout)
+        target_layout = QHBoxLayout()
+        target_layout.addWidget(self.__target_textfield)
+        target_layout.addWidget(self.__set_target_button)
+        self.addLayout(target_layout)
+
+    def update_plot(self, data_ref: Timeseries, data_actual: Timeseries):
+        self.__plot.update_data(data_ref, data_actual)
+
+    def set_button_handler(self, input_function: Callable[[str, str, str, str], None]):
+        self.__set_button.clicked.connect(lambda: input_function(self.__kp_textfield.text(),
+                                                                 self.__ki_textfield.text(),
+                                                                 self.__kd_textfield.text(),
+                                                                 self.__i_limit_textfield.text()))
+
+    def set_target_handler(self, input_function: Callable[[str], None]):
+        self.__set_target_button.clicked.connect(lambda: input_function(self.__target_textfield.text()))
+
+    def get_target(self):
+        return self.__target_textfield.text()
 
 
 class UIInterface(QWidget):
@@ -75,6 +121,12 @@ class UIInterface(QWidget):
         self.__control_layouts[0].update_plot(data_ref0, data_actual0)
         self.__control_layouts[1].update_plot(data_ref1, data_actual1)
 
+    def get_control_layouts(self, index: int) -> ControlLayout:
+        return self.__control_layouts[index]
+
+    def get_targets(self) -> [str, str]:
+        return [self.__control_layouts[0].get_target(), self.__control_layouts[1].get_target()]
+
 
 class PlotCanvas(FigureCanvas):
 
@@ -109,45 +161,3 @@ class PlotCanvas(FigureCanvas):
         self.draw()
 
 
-class ControlLayout(QVBoxLayout):
-    def __init__(self):
-        super().__init__()
-        self.__set_button = QPushButton('Set')
-        self.__kp_textfield = QLineEdit()
-        self.__ki_textfield = QLineEdit()
-        self.__kd_textfield = QLineEdit()
-        self.__i_limit_textfield = QLineEdit()
-        self.__target_textfield = QLineEdit()
-
-        self.__kp_textfield.setPlaceholderText('Kp')
-        self.__ki_textfield.setPlaceholderText('Ki')
-        self.__kd_textfield.setPlaceholderText('Kd')
-        self.__i_limit_textfield.setPlaceholderText('i_limit')
-        self.__target_textfield.setPlaceholderText('Target')
-        self.__set_target_button = QPushButton('Set')
-        self.__plot = PlotCanvas(width=5, height=4)
-
-        self.addWidget(self.__plot)
-        input_layout = QHBoxLayout()
-        input_layout.addWidget(self.__kp_textfield)
-        input_layout.addWidget(self.__ki_textfield)
-        input_layout.addWidget(self.__kd_textfield)
-        input_layout.addWidget(self.__i_limit_textfield)
-        input_layout.addWidget(self.__set_button)
-        self.addLayout(input_layout)
-        target_layout = QHBoxLayout()
-        target_layout.addWidget(self.__target_textfield)
-        target_layout.addWidget(self.__set_target_button)
-        self.addLayout(target_layout)
-
-    def update_plot(self, data_ref: Timeseries, data_actual: Timeseries):
-        self.__plot.update_data(data_ref, data_actual)
-
-    def set_button_handler(self, input_function: Callable[[str, str, str, str], None]):
-        self.__set_button.clicked.connect(lambda: input_function(self.__kp_textfield.text(),
-                                                                 self.__ki_textfield.text(),
-                                                                 self.__kd_textfield.text(),
-                                                                 self.__i_limit_textfield.text()))
-
-    def set_target_handler(self, input_function: Callable[[str], None]):
-        self.__set_target_button.connect(lambda: input_function(self.__target_textfield.text()))
