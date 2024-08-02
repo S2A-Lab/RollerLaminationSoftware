@@ -1,4 +1,6 @@
 import numpy as np
+
+
 class Timeseries:
     def __init__(self, filename):
         self.data = []

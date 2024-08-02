@@ -1,0 +1,40 @@
+class PIDController:
+    def __init__(self, kp, ki, kd, i_limit, sampling_time):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.i_limit = i_limit
+        self.error = 0.0
+        self.prev_error = 0.0
+
+        self.p_term = 0.0
+        self.i_term = 0.0
+        self.d_term = 0.0
+        self.sampling_time = sampling_time
+
+    def update(self, feedback, target):
+        self.error = target - feedback
+        self.p_term = self.kp * feedback
+        self.i_term = self.i_term + self.ki * feedback
+        self.d_term = self.kd * (self.error - self.prev_error)/self.sampling_time
+
+        # Avoid integral term saturation and result in low response
+        if self.i_term > self.i_limit:
+            self.i_term = self.i_limit
+        elif self.i_term < -self.i_limit:
+            self.i_term = -self.i_limit
+
+        return self.p_term + self.i_term + self.d_term
+
+    def clear_errors(self):
+        self.error = 0.0
+        self.prev_error = 0.0
+        self.p_term = 0.0
+        self.i_term = 0.0
+        self.d_term = 0.0
+
+    def set_pid_params(self, kp, ki, kd, i_limit):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.i_limit = i_limit

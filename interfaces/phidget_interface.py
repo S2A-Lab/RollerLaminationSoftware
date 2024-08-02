@@ -1,4 +1,4 @@
-from timeseries import *
+from data_structures.timeseries import *
 from Phidget22.Devices.VoltageRatioInput import *
 from pathlib import Path
 import time
@@ -12,7 +12,7 @@ class PhidgetInterface:
 
     # Data Management
     __file_name = "PhidgetData"
-    data = [Timeseries(__file_name + "_channel_0"), Timeseries(__file_name + "_channel_1")]
+    data = [Timeseries(__file_name + "feedback_channel_0"), Timeseries(__file_name + "feedback_channel_1")]
     __start_time = 0
     __start_time_set = False
 
@@ -28,7 +28,7 @@ class PhidgetInterface:
         self.data[0].set_filename("./data/" + self.__file_name + "_channel_0")
         self.data[1].set_filename("./data/" + self.__file_name + "_channel_1")
         self.__connected = True
-        Path("./data").mkdir(parents=True, exist_ok=True)
+        Path("../data").mkdir(parents=True, exist_ok=True)
         if not self.__start_time_set:
             self.__start_time = int(round(time.time() * 1000))
             self.__start_time_set = True
