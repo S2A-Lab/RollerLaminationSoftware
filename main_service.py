@@ -1,12 +1,15 @@
-from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QMessageBox
+from warnings import catch_warnings
 
+from PyQt5.QtCore import QThread
+from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QMessageBox, QStyle, QStyleOptionButton
+
+from controllers.pid_controller import PIDController
 from interfaces.interface_jrk import JRKInterface, get_ports
 from interfaces.interface_phidget import PhidgetInterface
 from interfaces.interface_ui import UIInterface
 from modules.module_connect import ConnectModule
 from modules.module_device_update import DeviceUpdateModule
-from modules.module_pid_controllers import PIDControllersModule
+from modules.module_vertical_actuators_controller import VerticalActuatorsController
 from modules.module_plot_update import PlotUpdateModule
 from modules.module_data_logger import DataLoggerModule
 
@@ -22,7 +25,7 @@ class MainService(QMainWindow):
         self.jrk_interface = JRKInterface()
 
         # Initialize PID controllers
-        self.linear_actuator_pid_module = PIDControllersModule(self.phidget_interface, self.jrk_interface)
+        self.linear_actuator_pid_module = VerticalActuatorsController(self.phidget_interface, self.jrk_interface)
 
         # Initialize data logger
         self.data_logger_module = DataLoggerModule(self.phidget_interface, self.linear_actuator_pid_module)
@@ -32,15 +35,27 @@ class MainService(QMainWindow):
         self.setMinimumSize(500, 750)
 
         # Binding UI handlers
-        self.ui_interface.set_callback_connect_button_clicked(self.__connect_button_clicked_handler)
-        self.ui_interface.set_callback_interval_textfield_change(self.__interval_textfield_handler)
-        self.ui_interface.set_callback_save_button_clicked(self.__save_button_clicked_handler)
-        self.ui_interface.set_callback_clear_button_clicked(self.__clear_button_clicked_handler)
+        self.ui_interface.set_connect_button_clicked_handler(self.__connect_button_clicked_handler)
+        self.ui_interface.set_interval_textfield_change_handler(self.__interval_textfield_handler)
+        self.ui_interface.set_save_button_clicked_handler(self.__save_button_clicked_handler)
+        self.ui_interface.set_clear_button_clicked_handler(self.__clear_button_clicked_handler)
 
-        self.ui_interface.get_control_layouts(0).set_button_handler(self.__pid_set_button_0_clicked_handler)
-        self.ui_interface.get_control_layouts(1).set_button_handler(self.__pid_set_button_1_clicked_handler)
-        self.ui_interface.get_control_layouts(0).set_target_handler(self.__target_set_button_clicked_handler)
-        self.ui_interface.get_control_layouts(1).set_target_handler(self.__target_set_button_clicked_handler)
+        self.ui_interface.get_control_layouts(0).set_params_button_clicked_handler(self.__pid_params_set_button_0_clicked_handler)
+        self.ui_interface.get_control_layouts(1).set_params_button_clicked_handler(self.__pid_params_set_button_1_clicked_handler)
+        self.ui_interface.get_control_layouts(0).set_target_force_button_clicked_handler(self.__target_set_torque_button_clicked_handler)
+        self.ui_interface.get_control_layouts(1).set_target_force_button_clicked_handler(self.__target_set_torque_button_clicked_handler)
+
+        self.ui_interface.get_control_layouts(0).set_up_button_clicked_handler(self.__jog_up_0_button_clicked_handler)
+        self.ui_interface.get_control_layouts(0).set_down_button_clicked_handler(self.__jog_down_0_button_clicked_handler)
+        self.ui_interface.get_control_layouts(0).set_all_up_button_clicked_handler(self.__jog_all_up_0_button_clicked_handler)
+        self.ui_interface.get_control_layouts(0).set_all_down_button_clicked_handler(self.__jog_all_down_0_button_clicked_handler)
+
+        self.ui_interface.get_control_layouts(1).set_up_button_clicked_handler(self.__jog_up_1_button_clicked_handler)
+        self.ui_interface.get_control_layouts(1).set_down_button_clicked_handler(self.__jog_down_1_button_clicked_handler)
+        self.ui_interface.get_control_layouts(1).set_all_up_button_clicked_handler(self.__jog_all_up_1_button_clicked_handler)
+        self.ui_interface.get_control_layouts(1).set_all_down_button_clicked_handler(self.__jog_all_down_1_button_clicked_handler)
+
+        self.ui_interface.set_start_force_control_button_clicked_handler(self.__start_force_control_button_clicked_handler)
 
         # Start threads
         self.__start_data_logger_thread()
@@ -127,8 +142,8 @@ class MainService(QMainWindow):
     def __clear_button_clicked_handler(self, button: QPushButton):
         self.data_logger_module.clear_data()
 
-    def __pid_set_button_0_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
-        if kp_str.isnumeric() and ki_str.isnumeric() and kd_str.isnumeric() and i_lim_str.isnumeric():
+    def __pid_params_set_button_0_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
+        if is_number(kp_str) and is_number(ki_str) and is_number(kd_str) and is_number(i_lim_str):
             kp = float(kp_str)
             ki = float(ki_str)
             kd = float(kd_str)
@@ -139,8 +154,8 @@ class MainService(QMainWindow):
                                 'Warning',
                                 'Please check if parameters in axis 0 contain non-numeric characters')
 
-    def __pid_set_button_1_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
-        if kp_str.isnumeric() and ki_str.isnumeric() and kd_str.isnumeric() and i_lim_str.isnumeric():
+    def __pid_params_set_button_1_clicked_handler(self, kp_str: str, ki_str: str, kd_str: str, i_lim_str: str):
+        if is_number(kp_str) and is_number(ki_str) and is_number(kd_str) and is_number(i_lim_str):
             kp = float(kp_str)
             ki = float(ki_str)
             kd = float(kd_str)
@@ -151,9 +166,9 @@ class MainService(QMainWindow):
                                 'Warning',
                                 'Please check if parameters in axis 1 contain non-numeric characters')
 
-    def __target_set_button_clicked_handler(self, sink: str):
-        targets = self.ui_interface.get_targets()
-        if targets[0].isnumeric() and targets[1].isnumeric():
+    def __target_set_torque_button_clicked_handler(self, sink: str):
+        targets = self.ui_interface.get_target_positions_str()
+        if is_number(targets[0]) and is_number(targets[1]):
             target0 = float(targets[0])
             target1 = float(targets[1])
 
@@ -162,8 +177,126 @@ class MainService(QMainWindow):
                                     'Warning',
                                     'Invalid target, will result in unstable case')
             else:
-                self.linear_actuator_pid_module.set_targets(target0, target1)
+                self.linear_actuator_pid_module.set_targets_forces(target0, target1)
         else:
             QMessageBox.warning(QMessageBox(),
                                 'Warning',
-                                'Please check if targets contain non-numeric characters')
+                                'Please check if targets force contain non-numeric characters')
+
+    def __jog_up_0_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[0] = target_positions[0] + float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 0 textfield contain non-numeric characters')
+
+    def __jog_up_1_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[1] = target_positions[1] + float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 1 textfield contain non-numeric characters')
+
+    def __jog_all_up_0_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[0] = target_positions[0] + float(step)
+            target_positions[1] = target_positions[1] + float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 0 textfield contain non-numeric characters')
+
+    def __jog_all_up_1_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[1] = target_positions[1] + float(step)
+            target_positions[0] = target_positions[0] + float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 1 textfield contain non-numeric characters')
+
+    def __jog_down_0_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[0] = target_positions[0] - float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 0 textfield contain non-numeric characters')
+
+    def __jog_down_1_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[1] = target_positions[1] - float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 1 textfield contain non-numeric characters')
+
+    def __jog_all_down_0_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[0] = target_positions[0] - float(step)
+            target_positions[1] = target_positions[1] - float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 0 textfield contain non-numeric characters')
+
+    def __jog_all_down_1_button_clicked_handler(self, step: str):
+        if is_number(step):
+            current_positions = self.linear_actuator_pid_module.get_positions()
+            target_positions = current_positions
+            target_positions[1] = target_positions[1] - float(step)
+            target_positions[0] = target_positions[0] - float(step)
+            self.linear_actuator_pid_module.set_positions(target_positions[0],
+                                                          target_positions[1])
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if step 1 textfield contain non-numeric characters')
+
+    def __start_force_control_button_clicked_handler(self, button: QPushButton):
+        match self.linear_actuator_pid_module.controller_mode:
+            case VerticalActuatorsController.ControllerMode.TORQUE:
+                self.linear_actuator_pid_module.controller_mode = VerticalActuatorsController.ControllerMode.POSITION
+                button.setText('Start Force Control')
+                button.setStyleSheet("background-color: green")
+            case VerticalActuatorsController.ControllerMode.POSITION:
+                self.linear_actuator_pid_module.controller_mode = VerticalActuatorsController.ControllerMode.TORQUE
+                button.setText('Stop Force Control')
+                button.setStyleSheet("background-color: red")
+
+def is_number(number_str: str) -> bool:
+    try:
+        float(number_str)
+        return True
+    except ValueError:
+        return False

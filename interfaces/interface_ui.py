@@ -1,3 +1,5 @@
+from PyQt5.QtGui import QIcon
+
 from datastruct.datastruct_timeseries import *
 from typing import Callable
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
@@ -19,14 +21,28 @@ class ControlLayout(QVBoxLayout):
         self.__ki_textfield = QLineEdit()
         self.__kd_textfield = QLineEdit()
         self.__i_limit_textfield = QLineEdit()
-        self.__target_textfield = QLineEdit()
+        self.__target_force_textfield = QLineEdit()
+        self.__jog_step_textfield = QLineEdit()
+
 
         self.__kp_textfield.setPlaceholderText('Kp')
         self.__ki_textfield.setPlaceholderText('Ki')
         self.__kd_textfield.setPlaceholderText('Kd')
         self.__i_limit_textfield.setPlaceholderText('i_limit')
-        self.__target_textfield.setPlaceholderText('Target')
-        self.__set_target_button = QPushButton('Set')
+        self.__target_force_textfield.setPlaceholderText('Target Force')
+        self.__set_target_force_button = QPushButton('Set Target Force')
+
+        self.__jog_up_button = QPushButton()
+        self.__jog_down_button = QPushButton()
+
+        self.__jog_all_up_button = QPushButton()
+        self.__jog_all_down_button = QPushButton()
+        self.__jog_step_textfield.setPlaceholderText('Jog Step')
+        self.__jog_up_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_up.svg'))
+        self.__jog_down_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_down.svg'))
+        self.__jog_all_up_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_all_up.svg'))
+        self.__jog_all_down_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_all_down.svg'))
+
         self.__plot = PlotCanvas(width=5, height=4)
         self.addWidget(self.__plot)
         input_layout = QHBoxLayout()
@@ -36,25 +52,49 @@ class ControlLayout(QVBoxLayout):
         input_layout.addWidget(self.__i_limit_textfield)
         input_layout.addWidget(self.__set_button)
         self.addLayout(input_layout)
-        target_layout = QHBoxLayout()
-        target_layout.addWidget(self.__target_textfield)
-        target_layout.addWidget(self.__set_target_button)
-        self.addLayout(target_layout)
+        target_force_layout = QHBoxLayout()
+        target_force_layout.addWidget(self.__target_force_textfield)
+        target_force_layout.addWidget(self.__set_target_force_button)
+        self.addLayout(target_force_layout)
+        jog_layout = QHBoxLayout()
+        jog_layout.addWidget(self.__jog_step_textfield)
+        jog_layout.addWidget(self.__jog_up_button)
+        jog_layout.addWidget(self.__jog_down_button)
+        jog_layout.addWidget(self.__jog_all_up_button)
+        jog_layout.addWidget(self.__jog_all_down_button)
+        self.addLayout(jog_layout)
+
 
     def update_plot(self, data_ref: Timeseries, data_actual: Timeseries):
         self.__plot.update_data(data_ref, data_actual)
 
-    def set_button_handler(self, input_function: Callable[[str, str, str, str], None]):
+    def set_params_button_clicked_handler(self, input_function: Callable[[str, str, str, str], None]):
         self.__set_button.clicked.connect(lambda: input_function(self.__kp_textfield.text(),
                                                                  self.__ki_textfield.text(),
                                                                  self.__kd_textfield.text(),
                                                                  self.__i_limit_textfield.text()))
 
-    def set_target_handler(self, input_function: Callable[[str], None]):
-        self.__set_target_button.clicked.connect(lambda: input_function(self.__target_textfield.text()))
+    def set_target_force_button_clicked_handler(self, input_function: Callable[[str], None]):
+        self.__set_target_force_button.clicked.connect(lambda: input_function(self.__target_force_textfield.text()))
 
-    def get_target(self):
-        return self.__target_textfield.text()
+    def get_target_force(self):
+        return self.__target_force_textfield.text()
+
+    def get_jog_step(self):
+        return self.__jog_step_textfield.text()
+
+    def set_up_button_clicked_handler(self, input_function: Callable[[str], None]):
+        self.__jog_up_button.clicked.connect(lambda: input_function(self.__jog_step_textfield.text()))
+
+    def set_down_button_clicked_handler(self, input_function: Callable[[str], None]):
+        self.__jog_down_button.clicked.connect(lambda: input_function(self.__jog_step_textfield.text()))
+
+    def set_all_up_button_clicked_handler(self, input_function: Callable[[str], None]):
+        self.__jog_all_up_button.clicked.connect(lambda: input_function(self.__jog_step_textfield.text()))
+
+    def set_all_down_button_clicked_handler(self, input_function: Callable[[str], None]):
+        self.__jog_all_down_button.clicked.connect(lambda: input_function(self.__jog_step_textfield.text()))
+
 
 
 class UIInterface(QWidget):
@@ -72,6 +112,8 @@ class UIInterface(QWidget):
         self.__refresh_label: QLabel = QLabel('Refresh Rate')
         self.__connect_button: QPushButton = QPushButton('Connect', self)
         self.__control_layouts = []
+
+        self.__start_force_control_button = QPushButton('Start Force Control')
 
         self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()
@@ -103,21 +145,25 @@ class UIInterface(QWidget):
         main_layout.addLayout(titlebar_layout)
         main_layout.addLayout(self.__control_layouts[0])
         main_layout.addLayout(self.__control_layouts[1])
+        main_layout.addWidget(self.__start_force_control_button)
         main_layout.addLayout(save_layout)
         self.setLayout(main_layout)
 
-    def set_callback_connect_button_clicked(self, input_function):
+    def set_connect_button_clicked_handler(self, input_function):
         self.__connect_button.clicked.connect(lambda: input_function(self.__connect_button))
 
-    def set_callback_interval_textfield_change(self, input_function):
+    def set_interval_textfield_change_handler(self, input_function):
         self.__refresh_rate_box.returnPressed.connect(lambda: input_function(self.__refresh_rate_box))
 
-    def set_callback_save_button_clicked(self, input_function):
+    def set_save_button_clicked_handler(self, input_function):
         self.__file_save_button.clicked.connect(lambda: input_function(self.__file_save_button,
                                                                        self.__file_name_textfield))
 
-    def set_callback_clear_button_clicked(self, input_function):
+    def set_clear_button_clicked_handler(self, input_function):
         self.__file_clear_button.clicked.connect(lambda: input_function(self.__file_clear_button))
+
+    def set_start_force_control_button_clicked_handler(self, input_function):
+        self.__start_force_control_button.clicked.connect(lambda: input_function(self.__start_force_control_button))
 
     def update_plot(self, data_ref0: Timeseries, data_actual0: Timeseries, data_ref1: Timeseries,
                     data_actual1: Timeseries):
@@ -127,8 +173,11 @@ class UIInterface(QWidget):
     def get_control_layouts(self, index: int) -> ControlLayout:
         return self.__control_layouts[index]
 
-    def get_targets(self) -> [str, str]:
-        return [self.__control_layouts[0].get_target(), self.__control_layouts[1].get_target()]
+    def get_target_positions_str(self) -> [str, str]:
+        return [self.__control_layouts[0].get_target_force(), self.__control_layouts[1].get_target_force()]
+
+    def get_jog_steps_str(self) -> [str, str]:
+        return [self.__control_layouts[0].get_jog_step(), self.__control_layouts[1].get_jog_step()]
 
 
 class PlotCanvas(FigureCanvas):
@@ -162,3 +211,4 @@ class PlotCanvas(FigureCanvas):
         self.axes.relim()  # Recalculate limits
         self.axes.autoscale_view(True, True, True)  # Autoscale
         self.draw()
+

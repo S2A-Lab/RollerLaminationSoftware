@@ -50,7 +50,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(assets/downarrow.svg); /* Replace with the path to your custom down arrow icon */
+    image: url(interfaces/ui_interface/assets/icons/downarrow.svg); /* Replace with the path to your custom down arrow icon */
     width: 10px;
     height: 10px;
 }

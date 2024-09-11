@@ -5,7 +5,7 @@ import sys
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    with open("assets/stylesheet.qss", "r") as stylesheet:
+    with open("interfaces/ui_interface/assets/icons/stylesheet.qss", "r") as stylesheet:
         app.setStyleSheet(stylesheet.read())
     window = MainService()
     window.show()

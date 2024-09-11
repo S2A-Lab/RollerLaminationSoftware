@@ -4,7 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QTimer, QThread
 
 from datastruct.datastruct_timeseries import Timeseries
 from interfaces.interface_phidget import PhidgetInterface
-from modules.module_pid_controllers import PIDControllersModule
+from modules.module_vertical_actuators_controller import VerticalActuatorsController
 
 
 class DataSaveWorker(QObject):
@@ -32,7 +32,7 @@ class DataLoggerModule(QObject):
     __start_time_set = False
     sampling_time = 100  # [ms]
 
-    def __init__(self, phidget_interface: PhidgetInterface, pid_controller_module: PIDControllersModule):
+    def __init__(self, phidget_interface: PhidgetInterface, pid_controller_module: VerticalActuatorsController):
         super().__init__()
         self.data_save_worker = None
         self.data_save_thread = None
@@ -86,7 +86,7 @@ class DataLoggerModule(QObject):
             current_time = int(round(time.time() * 1000))
 
             voltages = self.phidget_interface.get_voltages()
-            target = self.pid_module.targets
+            target = self.pid_module.target_forces
             output = [self.pid_module.output_0, self.pid_module.output_1]
             self.feedback_data[0].update_data(current_time - self.__start_time, voltages[0])
             self.feedback_data[1].update_data(current_time - self.__start_time, voltages[1])

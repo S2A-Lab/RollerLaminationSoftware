@@ -13,8 +13,8 @@ class PhidgetInterface:
     __voltages = [0, 0]
 
     def connect(self):
-        self.__voltage_ratio_input_0.setDeviceSerialNumber(716773)
-        self.__voltage_ratio_input_0.setDeviceSerialNumber(716773)
+        self.__voltage_ratio_input_0.setDeviceSerialNumber(716774)
+        self.__voltage_ratio_input_0.setDeviceSerialNumber(716774)
         self.__voltage_ratio_input_0.setChannel(0)
         self.__voltage_ratio_input_0.setChannel(1)
         self.__voltage_ratio_input_0.setOnVoltageRatioChangeHandler(self.__update)
