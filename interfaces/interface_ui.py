@@ -23,6 +23,7 @@ class ControlLayout(QVBoxLayout):
         self.__i_limit_textfield = QLineEdit()
         self.__target_force_textfield = QLineEdit()
         self.__jog_step_textfield = QLineEdit()
+        self.__jog_position_label = QLabel()
 
 
         self.__kp_textfield.setPlaceholderText('Kp')
@@ -57,6 +58,7 @@ class ControlLayout(QVBoxLayout):
         target_force_layout.addWidget(self.__set_target_force_button)
         self.addLayout(target_force_layout)
         jog_layout = QHBoxLayout()
+        jog_layout.addWidget(self.__jog_position_label)
         jog_layout.addWidget(self.__jog_step_textfield)
         jog_layout.addWidget(self.__jog_up_button)
         jog_layout.addWidget(self.__jog_down_button)
@@ -95,6 +97,8 @@ class ControlLayout(QVBoxLayout):
     def set_all_down_button_clicked_handler(self, input_function: Callable[[str], None]):
         self.__jog_all_down_button.clicked.connect(lambda: input_function(self.__jog_step_textfield.text()))
 
+    def update_position(self, position: int):
+        self.__jog_position_label.setText(str(position))
 
 
 class UIInterface(QWidget):
@@ -114,6 +118,7 @@ class UIInterface(QWidget):
         self.__control_layouts = []
 
         self.__start_force_control_button = QPushButton('Start Force Control')
+        self.__tare_button = QPushButton('Tare')
 
         self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()
@@ -145,7 +150,11 @@ class UIInterface(QWidget):
         main_layout.addLayout(titlebar_layout)
         main_layout.addLayout(self.__control_layouts[0])
         main_layout.addLayout(self.__control_layouts[1])
-        main_layout.addWidget(self.__start_force_control_button)
+
+        miscellaneous_layout = QHBoxLayout()
+        miscellaneous_layout.addWidget(self.__start_force_control_button)
+        miscellaneous_layout.addWidget(self.__tare_button)
+        main_layout.addLayout(miscellaneous_layout)
         main_layout.addLayout(save_layout)
         self.setLayout(main_layout)
 
@@ -165,10 +174,17 @@ class UIInterface(QWidget):
     def set_start_force_control_button_clicked_handler(self, input_function):
         self.__start_force_control_button.clicked.connect(lambda: input_function(self.__start_force_control_button))
 
+    def set_tare_button_clicked_handler(self, input_function):
+        self.__tare_button.clicked.connect(lambda: input_function(self.__tare_button))
+
     def update_plot(self, data_ref0: Timeseries, data_actual0: Timeseries, data_ref1: Timeseries,
                     data_actual1: Timeseries):
         self.__control_layouts[0].update_plot(data_ref0, data_actual0)
         self.__control_layouts[1].update_plot(data_ref1, data_actual1)
+
+    def update_positions(self, position0: int, position1: int):
+        self.__control_layouts[0].update_position(position0)
+        self.__control_layouts[1].update_position(position1)
 
     def get_control_layouts(self, index: int) -> ControlLayout:
         return self.__control_layouts[index]

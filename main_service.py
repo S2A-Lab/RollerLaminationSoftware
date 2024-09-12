@@ -56,7 +56,7 @@ class MainService(QMainWindow):
         self.ui_interface.get_control_layouts(1).set_all_down_button_clicked_handler(self.__jog_all_down_1_button_clicked_handler)
 
         self.ui_interface.set_start_force_control_button_clicked_handler(self.__start_force_control_button_clicked_handler)
-
+        self.ui_interface.set_tare_button_clicked_handler(self.__tare_button_clicked_handler)
         # Start threads
         self.__start_data_logger_thread()
         self.__start_serial_device_update_thread()
@@ -293,6 +293,9 @@ class MainService(QMainWindow):
                 self.linear_actuator_pid_module.controller_mode = VerticalActuatorsController.ControllerMode.TORQUE
                 button.setText('Stop Force Control')
                 button.setStyleSheet("background-color: red")
+
+    def __tare_button_clicked_handler(self, button: QPushButton):
+        self.phidget_interface.zero()
 
 def is_number(number_str: str) -> bool:
     try:

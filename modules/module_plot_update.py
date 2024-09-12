@@ -20,6 +20,8 @@ class PlotUpdateModule(QObject):
     def run(self):
         self.ui_interface.update_plot(self.data_logger_module.target_data[0], self.data_logger_module.feedback_data[0],
                                       self.data_logger_module.target_data[1], self.data_logger_module.feedback_data[1])
+        if self.data_logger_module.target_data[0].data.__len__() > 0:
+            self.ui_interface.update_positions(self.data_logger_module.output_data[0].data[-1], self.data_logger_module.output_data[1].data[-1])
 
     def change_interval(self, interval):
         self.interval = interval

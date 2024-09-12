@@ -12,6 +12,11 @@ class PhidgetInterface:
 
     __voltages = [0, 0]
 
+    coeff_channel_0 = 1.614167101957641e+05
+    coeff_channel_1 = 3.202322168529868e+05
+    zero_channel_0 = 0
+    zero_channel_1 = 0
+
     def connect(self):
         self.__voltage_ratio_input_0.setDeviceSerialNumber(716774)
         self.__voltage_ratio_input_0.setDeviceSerialNumber(716774)
@@ -35,5 +40,9 @@ class PhidgetInterface:
         self.__voltages[phidget_vri.getChannel()] = voltage_ratio
 
     def get_voltages(self):
-        return self.__voltages
+        return [self.__voltages[0]*self.coeff_channel_0 - self.zero_channel_0,
+                self.__voltages[1]*self.coeff_channel_1 - self.zero_channel_1]
 
+    def zero(self):
+        self.zero_channel_0 = self.__voltages[0]*self.coeff_channel_0
+        self.zero_channel_1 = self.__voltages[1]*self.coeff_channel_1

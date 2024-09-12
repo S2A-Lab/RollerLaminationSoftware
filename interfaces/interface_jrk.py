@@ -29,14 +29,15 @@ class JRKInterface(QObject):
         return self.__connected
 
     def send_target(self, target0, target1):
-        self.serial_port.writelines([(str(target0) + "," + str(target1)).encode()])
+        self.serial_port.writelines([(str(target0) + "," + str(target1)+"\r\n").encode()])
 
     def get_position(self)->[int, int]:
-        match = False
-        while not match:
+        self.serial_port.readline()
+        feedback_str = self.serial_port.readline().decode()
+        while not (feedback_str.__contains__("x:") and feedback_str[0]=="x"):
             feedback_str = self.serial_port.readline().decode()
-            match = re.search(r"x:(\d+), y:(\d+)", feedback_str)
-            if match:
-                x = int(match.group(1))
-                y = int(match.group(2))
-                return [x, y]
+        match = re.search(r"x: (\d+), y: (\d+)", feedback_str)
+        if match:
+            x = int(match.group(1))
+            y = int(match.group(2))
+            return [x, y]

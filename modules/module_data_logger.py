@@ -32,9 +32,6 @@ class DataLoggerModule(QObject):
     __start_time_set = False
     sampling_time = 100  # [ms]
 
-    coeff_channel_0 = 1.614167101957641e+05
-    coeff_channel_1 = 3.202322168529868e+05
-
     def __init__(self, phidget_interface: PhidgetInterface, pid_controller_module: VerticalActuatorsController):
         super().__init__()
         self.data_save_worker = None
@@ -90,7 +87,7 @@ class DataLoggerModule(QObject):
 
             voltages = self.phidget_interface.get_voltages()
             target = self.pid_module.target_forces
-            output = [self.pid_module.output_0, self.pid_module.output_1]
+            output = self.pid_module.output
             self.feedback_data[0].update_data(current_time - self.__start_time, voltages[0])
             self.feedback_data[1].update_data(current_time - self.__start_time, voltages[1])
             self.target_data[0].update_data(current_time - self.__start_time, target[0])
