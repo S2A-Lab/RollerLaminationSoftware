@@ -1,15 +1,26 @@
 #include <JrkG2.h>
-#include <HardwareSerial.h>
+#include <SoftwareSerial.h>
+#define S1_TX 25
+#define S1_RX 26
+#define S2_TX 32
+#define S2_RX 33
 
-JrkG2Serial jrk1(Serial2, 11);
-JrkG2Serial jrk2(Serial1, 12);
+EspSoftwareSerial::UART S1;
+EspSoftwareSerial::UART S2;
 
-//Serial.begin(9600);
+JrkG2Serial jrk1(S1);
+JrkG2Serial jrk2(S2);
+
 void setup() {
-  // put your setup code here, to run once:
-  Serial2.begin(9600, SERIAL_8N1, 16, 17); // GPIO 16, GPIO 17
-  Serial.begin(9600, SERIAL_8N1, 3, 1); // USB, pc commnunication
-  Serial1.begin(9600); // GPIO 9, GPIO 10
+  // For the USB, just use Serial as normal:
+    Serial.begin(115200);
+    Serial.print("Serial");
+
+    // Configure MySerial0 (-1, -1 means use the default)
+    S1.begin(9600, SWSERIAL_8N1, S1_RX, S1_TX,false);
+
+    // And configure MySerial1 on pins RX, TX
+    S2.begin(9600, SWSERIAL_8N1, S2_RX, S2_TX,false);
 }
 
 void loop() {
@@ -24,16 +35,17 @@ void loop() {
           int x = x_str.toInt();  // Convert the x string to an integer
           int y = y_str.toInt();  // Convert the y string to an integer
       
-          // Do something with x and y
-          Serial.print("x: ");
-          Serial.print(x);
-          Serial.print(", y: ");
-          Serial.println(y);
-
+ 
           jrk1.setTarget(x);
           jrk2.setTarget(y);
       }
   }
-    
+  
+   // Do something with x and y
+  Serial.print("x: ");
+  Serial.print(jrk1.getScaledFeedback());
+  Serial.print(", y: ");
+  Serial.println(jrk2.getScaledFeedback());
+          
   delay(1);
 }

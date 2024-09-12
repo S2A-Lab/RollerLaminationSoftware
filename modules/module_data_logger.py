@@ -32,6 +32,9 @@ class DataLoggerModule(QObject):
     __start_time_set = False
     sampling_time = 100  # [ms]
 
+    coeff_channel_0 = 1.614167101957641e+05
+    coeff_channel_1 = 3.202322168529868e+05
+
     def __init__(self, phidget_interface: PhidgetInterface, pid_controller_module: VerticalActuatorsController):
         super().__init__()
         self.data_save_worker = None

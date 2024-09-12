@@ -34,9 +34,14 @@ class VerticalActuatorsController(QObject):
         self.output = [0, 0]
         self.watchdog_threshold = 400
         self.PID_zero_position = [0, 0]
+        self.initialized = False
 
     def run(self):
         if self.phidget_interface.get_connected() and self.jrk_interface.get_connected():
+            if not self.initialized:
+                self.PID_zero_position = self.jrk_interface.get_position()
+                self.initialized = True
+            print(self.PID_zero_position)
             match self.controller_mode:
                 case VerticalActuatorsController.ControllerMode.TORQUE:
                     voltages = self.phidget_interface.get_voltages()
@@ -61,8 +66,9 @@ class VerticalActuatorsController(QObject):
                     self.prev_output[0] = self.output[0]
                     self.prev_output[1] = self.output[1]
                 case VerticalActuatorsController.ControllerMode.POSITION:
-                    self.jrk_interface.send_target(int(self.PID_zero_position[0]),
-                                                   int(self.PID_zero_position[1]))
+                    pass
+                    # self.jrk_interface.send_target(int(self.PID_zero_position[0]),
+                    #                                int(self.PID_zero_position[1]))
 
     def set_targets_forces(self, target0, target1):
         self.target_forces[0] = target0

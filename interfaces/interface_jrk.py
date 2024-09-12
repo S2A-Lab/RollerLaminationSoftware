@@ -1,8 +1,7 @@
-import time
-
 import serial
 from PyQt5.QtCore import QObject
 from serial.tools import list_ports
+import re
 from datastruct.datastruct_timeseries import Timeseries
 
 
@@ -31,3 +30,13 @@ class JRKInterface(QObject):
 
     def send_target(self, target0, target1):
         self.serial_port.writelines([(str(target0) + "," + str(target1)).encode()])
+
+    def get_position(self)->[int, int]:
+        match = False
+        while not match:
+            feedback_str = self.serial_port.readline().decode()
+            match = re.search(r"x:(\d+), y:(\d+)", feedback_str)
+            if match:
+                x = int(match.group(1))
+                y = int(match.group(2))
+                return [x, y]
