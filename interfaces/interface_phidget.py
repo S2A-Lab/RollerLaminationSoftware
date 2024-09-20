@@ -40,8 +40,8 @@ class PhidgetInterface:
         self.__voltages[phidget_vri.getChannel()] = voltage_ratio
 
     def get_voltages(self):
-        return [self.__voltages[0]*self.coeff_channel_0 - self.zero_channel_0,
-                self.__voltages[1]*self.coeff_channel_1 - self.zero_channel_1]
+        return [-self.__voltages[0]*self.coeff_channel_0 + self.zero_channel_0,
+                -self.__voltages[1]*self.coeff_channel_1 + self.zero_channel_1]
 
     def zero(self):
         self.zero_channel_0 = self.__voltages[0]*self.coeff_channel_0
