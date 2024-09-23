@@ -57,6 +57,7 @@ class MainService(QMainWindow):
 
         self.ui_interface.set_start_force_control_button_clicked_handler(self.__start_force_control_button_clicked_handler)
         self.ui_interface.set_tare_button_clicked_handler(self.__tare_button_clicked_handler)
+        self.ui_interface.set_horizontal_stage_speed_set_button_clicked_handler(self.__horizontal_stage_speed_set_button_clicked_handler)
         # Start threads
         self.__start_data_logger_thread()
         self.__start_serial_device_update_thread()
@@ -296,6 +297,14 @@ class MainService(QMainWindow):
 
     def __tare_button_clicked_handler(self, button: QPushButton):
         self.phidget_interface.zero()
+
+    def __horizontal_stage_speed_set_button_clicked_handler(self, button: QPushButton, textfield: QLineEdit):
+        if is_number(textfield.text()):
+            self.linear_actuator_pid_module.set_horizontal_target_speed(int(textfield.text()))
+        else:
+            QMessageBox.warning(QMessageBox(),
+                                'Warning',
+                                'Please check if linear stage speed textfield contain non-numeric characters')
 
 def is_number(number_str: str) -> bool:
     try:

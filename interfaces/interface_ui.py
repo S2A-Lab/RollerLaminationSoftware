@@ -120,6 +120,9 @@ class UIInterface(QWidget):
         self.__start_force_control_button = QPushButton('Start Force Control')
         self.__tare_button = QPushButton('Tare')
 
+        self.__horizontal_stage_speed_textfield: QLineEdit = QLineEdit('')
+        self.__horizontal_stage_speed_set_button: QPushButton = QPushButton('Set')
+
         self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()
 
@@ -141,12 +144,6 @@ class UIInterface(QWidget):
         # Initialize main layout
         self.__control_layouts = [ControlLayout(), ControlLayout()]
 
-        # Initialize save layout
-        save_layout = QHBoxLayout()
-        save_layout.addWidget(self.__file_name_textfield)
-        save_layout.addWidget(self.__file_clear_button)
-        save_layout.addWidget(self.__file_save_button)
-
         main_layout.addLayout(titlebar_layout)
         main_layout.addLayout(self.__control_layouts[0])
         main_layout.addLayout(self.__control_layouts[1])
@@ -155,6 +152,19 @@ class UIInterface(QWidget):
         miscellaneous_layout.addWidget(self.__start_force_control_button)
         miscellaneous_layout.addWidget(self.__tare_button)
         main_layout.addLayout(miscellaneous_layout)
+
+        horizontal_stage_layout = QHBoxLayout()
+        horizontal_stage_layout.addWidget(self.__horizontal_stage_speed_textfield)
+        horizontal_stage_layout.addWidget(self.__horizontal_stage_speed_set_button)
+        self.__horizontal_stage_speed_textfield.setPlaceholderText("Linear stage speed")
+        main_layout.addLayout(horizontal_stage_layout)
+
+        # Initialize save layout
+        save_layout = QHBoxLayout()
+        save_layout.addWidget(self.__file_name_textfield)
+        save_layout.addWidget(self.__file_clear_button)
+        save_layout.addWidget(self.__file_save_button)
+
         main_layout.addLayout(save_layout)
         self.setLayout(main_layout)
 
@@ -176,6 +186,10 @@ class UIInterface(QWidget):
 
     def set_tare_button_clicked_handler(self, input_function):
         self.__tare_button.clicked.connect(lambda: input_function(self.__tare_button))
+
+    def set_horizontal_stage_speed_set_button_clicked_handler(self, input_function):
+        self.__horizontal_stage_speed_set_button.clicked.connect(lambda: input_function(self.__horizontal_stage_speed_set_button,
+                                                                                        self.__horizontal_stage_speed_textfield))
 
     def update_plot(self, data_ref0: Timeseries, data_actual0: Timeseries, data_ref1: Timeseries,
                     data_actual1: Timeseries):

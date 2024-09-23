@@ -35,6 +35,8 @@ class VerticalActuatorsController(QObject):
         self.watchdog_threshold = 500
         self.initialized = False
 
+        self.horizontal_target_speed = 0
+
     def run(self):
         if self.phidget_interface.get_connected() and self.jrk_interface.get_connected():
             if not self.initialized:
@@ -70,12 +72,15 @@ class VerticalActuatorsController(QObject):
                                     int(self.PID_zero_position[1])]
                     self.prev_output[0] = self.output[0]
                     self.prev_output[1] = self.output[1]
-                    self.jrk_interface.send_target(*self.output)
+                    self.jrk_interface.send_target(*self.output, self.horizontal_target_speed)
 
 
     def set_targets_forces(self, target0, target1):
         self.target_forces[0] = target0
         self.target_forces[1] = target1
+
+    def set_horizontal_target_speed(self, speed):
+        self.horizontal_target_speed = speed
 
     def set_pid_params(self, controller_id: int, kp: float, ki: float, kd: float, i_limit: float):
         self.pid_controllers[controller_id].set_pid_params(kp, ki, kd, i_limit)
