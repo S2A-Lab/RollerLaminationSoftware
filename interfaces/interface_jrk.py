@@ -29,7 +29,7 @@ class JRKInterface(QObject):
         return self.__connected
 
     def send_target(self, target0, target1, target2=0):
-        self.serial_port.writelines([(str(target0) + "," + str(target1) + str(target2) + "\r\n").encode()])
+        self.serial_port.writelines([(str(target0) + "," + str(target1) +","+ str(target2) + "\r\n").encode()])
 
     def get_position(self) -> [int, int]:
         self.serial_port.readline()
