@@ -63,8 +63,9 @@ class VerticalActuatorsController(QObject):
                     #     elif self.prev_output[1] - self.output[1] <= 0:
                     #         self.output[0] = self.output[1] - self.watchdog_threshold
 
-                    self.jrk_interface.send_target(int(self.output[0]+ self.PID_zero_position[0]),
-                                                   int(self.output[1] + self.PID_zero_position[1]))
+                    self.jrk_interface.send_target(int(-self.output [0] + self.PID_zero_position[0]),
+                                                   int(-self.output [1] + self.PID_zero_position[1]),
+                                                        self.horizontal_target_speed)
                     self.prev_output[0] = self.output[0]
                     self.prev_output[1] = self.output[1]
                 case VerticalActuatorsController.ControllerMode.POSITION:

@@ -14,8 +14,8 @@ class PIDController:
 
     def update(self, feedback, target):
         self.error = target - feedback
-        self.p_term = self.kp * feedback
-        self.i_term = self.i_term + self.ki * feedback
+        self.p_term = self.kp * self.error
+        self.i_term = self.i_term + self.ki * self.error
         self.d_term = self.kd * (self.error - self.prev_error)/self.sampling_time
 
         # Avoid integral term saturation and result in low response
