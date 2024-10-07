@@ -5,6 +5,11 @@ import re
 import numpy as np
 from datastruct.datastruct_timeseries import Timeseries
 
+import subprocess
+import yaml
+
+def jrk2cmd(*args):
+    return subprocess.check_output(['jrk2cmd'] + list(args))
 
 def get_ports():
     return list_ports.comports()
@@ -50,6 +55,9 @@ class JRKInterface(QObject):
         return self.__connected
 
     def send_target(self, target0 : int, target1 : int, target2 : int):
+        jrk2cmd('-d', '00425280', '--target', str(int(target0)))
+        jrk2cmd('-d', '00425253', '--target', str(int(target1)))
+
         self.serial_port.write(bytearray([*split_16bit_to_7bit_chunks(target0),
                                           *split_16bit_to_7bit_chunks(target1),
                                           *split_16bit_to_7bit_chunks(target2),
@@ -63,7 +71,11 @@ class JRKInterface(QObject):
         received_data = self.serial_port.read(10)
         if received_data[9] == 255:
             # Reconstruct each 16-bit target value
-            x = reconstruct_16bit_value(received_data[0], received_data[1], received_data[2])
-            y = reconstruct_16bit_value(received_data[3], received_data[4], received_data[5])
+            # x = reconstruct_16bit_value(received_data[0], received_data[1], received_data[2])
+            # y = reconstruct_16bit_value(received_data[3], received_data[4], received_data[5])
+            status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
+            x = status_x['Scaled Feedback']
+            status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
+            y = status_y['Scaled Feedback']
             z = reconstruct_16bit_value(received_data[6], received_data[7], received_data[8])
             return [x, y, z]

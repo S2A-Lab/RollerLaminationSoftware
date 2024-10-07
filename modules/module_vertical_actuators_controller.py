@@ -8,7 +8,7 @@ from controllers.pid_controller import PIDController
 
 
 class VerticalActuatorsController(QObject):
-    sampling_time = 300
+    sampling_time = 100
     target_forces = [0, 0]
     prev_output = [0, 0]
     output = [0, 0]
