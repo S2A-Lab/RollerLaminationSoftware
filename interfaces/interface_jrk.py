@@ -58,10 +58,11 @@ class JRKInterface(QObject):
         jrk2cmd('-d', '00425280', '--target', str(int(target0)))
         jrk2cmd('-d', '00425253', '--target', str(int(target1)))
 
-        self.serial_port.write(bytearray([*split_16bit_to_7bit_chunks(target0),
-                                          *split_16bit_to_7bit_chunks(target1),
+        self.serial_port.write(bytearray([*split_16bit_to_7bit_chunks(0),
+                                          *split_16bit_to_7bit_chunks(0),
                                           *split_16bit_to_7bit_chunks(target2),
                                           255]))
+        print(target2)
         self.serial_port.writelines([(str(target0) + "," + str(target1) +","+ str(target2) + "\r\n").encode()])
 
     def get_position(self) -> [int, int, int]:
@@ -72,10 +73,11 @@ class JRKInterface(QObject):
         if received_data[9] == 255:
             # Reconstruct each 16-bit target value
             # x = reconstruct_16bit_value(received_data[0], received_data[1], received_data[2])
-            # y = reconstruct_16bit_value(received_data[3], received_data[4], received_data[5])
+            tz = reconstruct_16bit_value(received_data[3], received_data[4], received_data[5])
+            print(tz)
             status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
-            x = status_x['Scaled Feedback']
+            x = status_x['Scaled feedback']
             status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
-            y = status_y['Scaled Feedback']
+            y = status_y['Scaled feedback']
             z = reconstruct_16bit_value(received_data[6], received_data[7], received_data[8])
             return [x, y, z]

@@ -74,6 +74,7 @@ class VerticalActuatorsController(QObject):
                     self.prev_output[0] = self.output[0]
                     self.prev_output[1] = self.output[1]
                     self.jrk_interface.send_target(*self.output, self.horizontal_target_speed)
+            self.jrk_interface.get_position()
 
 
     def set_targets_forces(self, target0, target1):
