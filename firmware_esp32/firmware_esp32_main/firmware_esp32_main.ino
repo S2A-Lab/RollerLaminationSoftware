@@ -3,8 +3,9 @@
 ///////////////////////////////////
 ///////// IO definitions //////////
 ///////////////////////////////////
-#define DIR 12  // Stepper DIR Pin
-#define STEP 14 // Stepper STEP Pin
+#define DIR 9  // Stepper DIR Pin
+#define STEP 10 // Stepper STEP Pin
+#define HOME 23 // Home sensor Pin
 
 ///////////////////////////////////
 //////// Module Initialize ////////
@@ -21,14 +22,16 @@ int target_speed_horizontal_stage = 0;
 int target_position_vertical_left_actuator = 0;
 int target_position_vertical_right_actuator = 0;
 uint8_t received_data[10];  // Array to store received command bytes
-bool calibrated = false;
+bool homed = false;
+int home_state = 0;
+bool initialized = false;
 
 ///////////////////////////////////
 /// Linear Actuator Limitations ///
 ///////////////////////////////////
 #define MAX_SPEED 8000
 #define STEP_MIN_POSITION 0
-#define STEP_MAX_POSITION 64000
+#define STEP_MAX_POSITION 80000
 
 void setup() {
     // Initialize USB serial for debugging
@@ -38,46 +41,51 @@ void setup() {
     stepper.setAcceleration(1000); // Increase acceleration to smooth movement
     stepper.setSpeed(0);  // Initial speed 0
     stepper.setCurrentPosition(0);
-
-    // Create a task to handle serial communication and motor control on Core 0
+    pinMode(HOME, INPUT_PULLUP);
 }
 
 void loop() {
-  if (Serial.available() >= 10) {  // Wait until 10 bytes are available
-        for (int i = 0; i < 10; i++) {
-            received_data[i] = Serial.read();
+  if(!homed){
+    switch(home_state) {
+      case 0: // Wait for home sensor to be triggered
+        if (digitalRead(HOME)){
+          stepper.setSpeed(-1000);
+        } else {
+          stepper.setSpeed(1000);
+          stepper.setCurrentPosition(0);
+          home_state = 1;
         }
-        // Check if the last byte is 255 (end marker)
-        if (received_data[9] == 255) {
-            // Reconstruct each 16-bit target
-            target_speed_horizontal_stage =
-                reconstruct_16bit_value(received_data[6], received_data[7], received_data[8]);
-            stepper.setSpeed(target_speed_horizontal_stage);
+        break;
+      case 1: // Wait for home sensor to move back a little bit
+        if (stepper.currentPosition()> 1000) {
+          stepper.setSpeed(0);
+          home_state = 2;
+        } else {
+          stepper.setSpeed(1000);
         }
+        break;
+      case 2: // End
+        homed = true;
+        stepper.setSpeed(0);
+        break;
     }
-
+  } else {
+    if (Serial.available() > 0) {
+      String receivedString = Serial.readStringUntil('\n'); // Read until newline
+      target_speed_horizontal_stage = receivedString.toInt();                 // Convert to integer
+    }
     int16_t x_fb = 0;
     int16_t y_fb = 0;
     int16_t z_fb = stepper.currentPosition();
 
-    Serial.write(0x00);
-    Serial.write(0x00);
-    Serial.write(0x00);
-    Serial.write(target_speed_horizontal_stage &0x7F);
-    Serial.write(target_speed_horizontal_stage >> 7 & 0x7F);
-    Serial.write(target_speed_horizontal_stage >> 14 & 0x7F);
-    Serial.write(z_fb & 0x7F);
-    Serial.write(z_fb >> 7  & 0x7F);
-    Serial.write(z_fb >> 14 & 0x7F);
-    Serial.write(0xFF);
-    
-    // Control stepper motor based on z
+    stepper.setSpeed(target_speed_horizontal_stage);
     if (stepper.currentPosition() > STEP_MAX_POSITION && target_speed_horizontal_stage > 0) {
         stepper.setSpeed(0);
     } else if (stepper.currentPosition() < STEP_MIN_POSITION && target_speed_horizontal_stage < 0) {
         stepper.setSpeed(0);
     }
-    stepper.runSpeed();  // Non-blocking stepper control
+  }
+  stepper.runSpeed();  // Non-blocking stepper control
 }
 
 // Reconstruct 16-bit value from received chunks

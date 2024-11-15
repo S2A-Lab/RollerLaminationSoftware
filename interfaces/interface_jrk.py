@@ -8,6 +8,9 @@ from datastruct.datastruct_timeseries import Timeseries
 import subprocess
 import yaml
 
+from testJRK import target
+
+
 def jrk2cmd(*args):
     return subprocess.check_output(['jrk2cmd'] + list(args))
 
@@ -58,26 +61,19 @@ class JRKInterface(QObject):
         jrk2cmd('-d', '00425280', '--target', str(int(target0)))
         jrk2cmd('-d', '00425253', '--target', str(int(target1)))
 
-        self.serial_port.write(bytearray([*split_16bit_to_7bit_chunks(0),
-                                          *split_16bit_to_7bit_chunks(0),
-                                          *split_16bit_to_7bit_chunks(target2),
-                                          255]))
-        print(target2)
-        self.serial_port.writelines([(str(target0) + "," + str(target1) +","+ str(target2) + "\r\n").encode()])
+    def send_horizontal(self, targetz):
+        targetz = int(targetz)
+        command = str(targetz) + '\n'
+        print(command)
+        self.serial_port.write(command.encode())
+
 
     def get_position(self) -> [int, int, int]:
-        while self.serial_port.read(1) != b'\xff':
-           pass
 
-        received_data = self.serial_port.read(10)
-        if received_data[9] == 255:
-            # Reconstruct each 16-bit target value
-            # x = reconstruct_16bit_value(received_data[0], received_data[1], received_data[2])
-            tz = reconstruct_16bit_value(received_data[3], received_data[4], received_data[5])
-            print(tz)
-            status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
-            x = status_x['Scaled feedback']
-            status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
-            y = status_y['Scaled feedback']
-            z = reconstruct_16bit_value(received_data[6], received_data[7], received_data[8])
-            return [x, y, z]
+        status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
+        x = status_x['Scaled feedback']
+        status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
+        y = status_y['Scaled feedback']
+        z = 0
+
+        return [x, y, z]
