@@ -8,8 +8,6 @@ from datastruct.datastruct_timeseries import Timeseries
 import subprocess
 import yaml
 
-from testJRK import target
-
 
 def jrk2cmd(*args):
     return subprocess.check_output(['jrk2cmd'] + list(args))
@@ -70,10 +68,10 @@ class JRKInterface(QObject):
 
     def get_position(self) -> [int, int, int]:
 
-        status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
-        x = status_x['Scaled feedback']
-        status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
-        y = status_y['Scaled feedback']
+        # status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
+        # x = status_x['Scaled feedback']
+        # status_y = yaml.safe_load(jrk2cmd('-d', '00425253', '-s', '--full'))
+        # y = status_y['Scaled feedback']
         z = 0
 
         return [x, y, z]

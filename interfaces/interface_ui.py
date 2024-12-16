@@ -121,13 +121,19 @@ class UIInterface(QWidget):
         self.__tare_button = QPushButton('Tare')
 
         self.__horizontal_stage_speed_textfield: QLineEdit = QLineEdit('')
-        self.__horizontal_stage_speed_set_button: QPushButton = QPushButton('Set')
+        self.__horizontal_stage_left_button: QPushButton = QPushButton('')
+        self.__horizontal_stage_right_button: QPushButton = QPushButton('')
+        self.__horizontal_stage_stop_button: QPushButton = QPushButton('')
+
+        self.__horizontal_stage_left_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_left.svg'))
+        self.__horizontal_stage_right_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_right.svg'))
+        self.__horizontal_stage_stop_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_stop.svg'))
 
         self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()
 
     def init_ui(self):
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1600, 600)
 
         main_layout = QVBoxLayout()
 
@@ -145,8 +151,10 @@ class UIInterface(QWidget):
         self.__control_layouts = [ControlLayout(), ControlLayout()]
 
         main_layout.addLayout(titlebar_layout)
-        main_layout.addLayout(self.__control_layouts[0])
-        main_layout.addLayout(self.__control_layouts[1])
+        control_interface_layout = QHBoxLayout()
+        control_interface_layout.addLayout(self.__control_layouts[0])
+        control_interface_layout.addLayout(self.__control_layouts[1])
+        main_layout.addLayout(control_interface_layout)
 
         miscellaneous_layout = QHBoxLayout()
         miscellaneous_layout.addWidget(self.__start_force_control_button)
@@ -155,7 +163,9 @@ class UIInterface(QWidget):
 
         horizontal_stage_layout = QHBoxLayout()
         horizontal_stage_layout.addWidget(self.__horizontal_stage_speed_textfield)
-        horizontal_stage_layout.addWidget(self.__horizontal_stage_speed_set_button)
+        horizontal_stage_layout.addWidget(self.__horizontal_stage_left_button)
+        horizontal_stage_layout.addWidget(self.__horizontal_stage_stop_button)
+        horizontal_stage_layout.addWidget(self.__horizontal_stage_right_button)
         self.__horizontal_stage_speed_textfield.setPlaceholderText("Linear stage speed")
         main_layout.addLayout(horizontal_stage_layout)
 
@@ -187,9 +197,17 @@ class UIInterface(QWidget):
     def set_tare_button_clicked_handler(self, input_function):
         self.__tare_button.clicked.connect(lambda: input_function(self.__tare_button))
 
-    def set_horizontal_stage_speed_set_button_clicked_handler(self, input_function):
-        self.__horizontal_stage_speed_set_button.clicked.connect(lambda: input_function(self.__horizontal_stage_speed_set_button,
-                                                                                        self.__horizontal_stage_speed_textfield))
+    def set_horizontal_stage_left_button_clicked_handler(self, input_function):
+        self.__horizontal_stage_left_button.clicked.connect(lambda: input_function(self.__horizontal_stage_left_button,
+                                                                                   self.__horizontal_stage_speed_textfield))
+
+    def set_horizontal_stage_right_button_clicked_handler(self, input_function):
+        self.__horizontal_stage_right_button.clicked.connect(lambda: input_function(self.__horizontal_stage_left_button,
+                                                                                   self.__horizontal_stage_speed_textfield))
+
+    def set_horizontal_stage_stop_button_clicked_handler(self, input_function):
+        self.__horizontal_stage_stop_button.clicked.connect(lambda: input_function(self.__horizontal_stage_left_button,
+                                                                                    self.__horizontal_stage_speed_textfield))
 
     def update_plot(self, data_ref0: Timeseries, data_actual0: Timeseries, data_ref1: Timeseries,
                     data_actual1: Timeseries):
