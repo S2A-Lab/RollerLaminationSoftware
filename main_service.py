@@ -290,11 +290,11 @@ class MainService(QMainWindow):
     def __start_force_control_button_clicked_handler(self, button: QPushButton):
         match self.linear_actuator_pid_module.controller_mode:
             case VerticalActuatorsController.ControllerMode.TORQUE:
-                self.linear_actuator_pid_module.controller_mode = VerticalActuatorsController.ControllerMode.POSITION
+                self.linear_actuator_pid_module.set_mode(VerticalActuatorsController.ControllerMode.POSITION)
                 button.setText('Start Force Control')
                 button.setStyleSheet("background-color: green")
             case VerticalActuatorsController.ControllerMode.POSITION:
-                self.linear_actuator_pid_module.controller_mode = VerticalActuatorsController.ControllerMode.TORQUE
+                self.linear_actuator_pid_module.set_mode(VerticalActuatorsController.ControllerMode.TORQUE)
                 button.setText('Stop Force Control')
                 button.setStyleSheet("background-color: red")
 

@@ -63,6 +63,11 @@ class VerticalActuatorsController(QObject):
                     self.prev_output[1] = self.output[1]
                     self.jrk_interface.send_target(*self.output, self.horizontal_target_speed)
 
+    def set_mode(self, mode: ControllerMode):
+        self.controller_mode = mode
+        self.pid_controllers[0].clear_errors()
+        self.pid_controllers[1].clear_errors()
+
     def set_targets_forces(self, target0, target1):
         self.target_forces[0] = target0
         self.target_forces[1] = target1
