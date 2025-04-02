@@ -21,24 +21,26 @@ class DataSaveWorker(QObject):
 class DataLoggerModule(QObject):
     __file_name: str = 'PhidgetData'
 
-    target_data = [Timeseries("./data/" + __file_name + "_target_0"),
-                   Timeseries("./data/" + __file_name + "_target_1")]
+    target_data   = [Timeseries("./data/" + __file_name + "_target_0"),
+                     Timeseries("./data/" + __file_name + "_target_1")]
     feedback_data = [Timeseries("./data/" + __file_name + "_feedback_0"),
                      Timeseries("./data/" + __file_name + "_feedback_1")]
-    output_data = [Timeseries("./data/" + __file_name + "_output_0"),
-                   Timeseries("./data/" + __file_name + "_output_1")]
-    p_data = [Timeseries("./data/" + __file_name + "_p_gain_0"),
-              Timeseries("./data/" + __file_name + "_p_gain_1")]
-    i_data = [Timeseries("./data/" + __file_name + "_i_gain_0"),
-              Timeseries("./data/" + __file_name + "_i_gain_1")]
-    d_data = [Timeseries("./data/" + __file_name + "_d_gain_0"),
-              Timeseries("./data/" + __file_name + "_d_gain_1")]
-    ilim_data = [Timeseries("./data/" + __file_name + "_i_limit_0"),
-                 Timeseries("./data/" + __file_name + "_i_limit_1")]
-    speed_data = Timeseries("./data/" + __file_name + "_speed")
-    __start_time = 0
+    output_data   = [Timeseries("./data/" + __file_name + "_output_0"),
+                     Timeseries("./data/" + __file_name + "_output_1")]
+    p_data        = [Timeseries("./data/" + __file_name + "_p_gain_0"),
+                     Timeseries("./data/" + __file_name + "_p_gain_1")]
+    i_data        = [Timeseries("./data/" + __file_name + "_i_gain_0"),
+                     Timeseries("./data/" + __file_name + "_i_gain_1")]
+    d_data        = [Timeseries("./data/" + __file_name + "_d_gain_0"),
+                     Timeseries("./data/" + __file_name + "_d_gain_1")]
+    ilim_data     = [Timeseries("./data/" + __file_name + "_i_limit_0"),
+                     Timeseries("./data/" + __file_name + "_i_limit_1")]
+    speed_data    = Timeseries("./data/" + __file_name + "_speed")
+    __start_time  = 0
     __start_time_set = False
     sampling_time = 100  # [ms]
+    lb = 0
+    ub = 1
 
     def __init__(self, phidget_interface: PhidgetInterface, pid_controller_module: VerticalActuatorsController):
         super().__init__()
@@ -69,6 +71,8 @@ class DataLoggerModule(QObject):
         self.feedback_data[1].reset()
         self.output_data[0].reset()
         self.output_data[1].reset()
+        self.lb = 0
+        self.ub = 1
         if self.phidget_interface.get_connected():
             self.__start_time_set = True
             self.__start_time = int(round(time.time() * 1000))
@@ -112,6 +116,9 @@ class DataLoggerModule(QObject):
             self.target_data[1].update_data(current_time - self.__start_time, target[1])
             self.output_data[0].update_data(current_time - self.__start_time, output[0])
             self.output_data[1].update_data(current_time - self.__start_time, output[1])
+
+            self.lb = min(voltages[0], voltages[1], target[0], target[1])
+            self.ub = max(voltages[0], voltages[1], target[0], target[1])
 
             pid_param0 = self.pid_module.pid_controllers[0].get_pid_params()
             pid_param1 = self.pid_module.pid_controllers[1].get_pid_params()

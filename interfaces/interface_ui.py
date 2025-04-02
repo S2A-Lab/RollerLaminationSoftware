@@ -70,6 +70,9 @@ class ControlLayout(QVBoxLayout):
     def update_plot(self, data_ref: Timeseries, data_actual: Timeseries):
         self.__plot.update_data(data_ref, data_actual)
 
+    def update_y_limits(self, lb, ub):
+        self.__plot.update_y_limits(lb, ub)
+
     def set_params_button_clicked_handler(self, input_function: Callable[[str, str, str, str], None]):
         self.__set_button.clicked.connect(lambda: input_function(self.__kp_textfield.text(),
                                                                  self.__ki_textfield.text(),
@@ -214,6 +217,10 @@ class UIInterface(QWidget):
         self.__control_layouts[0].update_plot(data_ref0, data_actual0)
         self.__control_layouts[1].update_plot(data_ref1, data_actual1)
 
+    def update_y_limits(self, lb, ub):
+        self.__control_layouts[0].update_y_limits(lb, ub)
+        self.__control_layouts[1].update_y_limits(lb, ub)
+
     def update_positions(self, position0: int, position1: int):
         self.__control_layouts[0].update_position(position0)
         self.__control_layouts[1].update_position(position1)
@@ -257,6 +264,9 @@ class PlotCanvas(FigureCanvas):
             self.line_actual.set_xdata(data_actual.timestamp)
 
         self.axes.relim()  # Recalculate limits
-        self.axes.autoscale_view(True, True, True)  # Autoscale
+        self.axes.autoscale_view(True, True, False)  # Autoscale
         self.draw()
+
+    def update_y_limits(self, lb, up):
+        self.axes.set_ylim(lb, up)
 
