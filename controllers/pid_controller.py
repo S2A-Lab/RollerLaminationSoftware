@@ -38,3 +38,6 @@ class PIDController:
         self.ki = ki
         self.kd = kd
         self.i_limit = i_limit
+
+    def get_pid_params(self):
+        return [self.kp, self.ki, self.kd, self.i_limit]

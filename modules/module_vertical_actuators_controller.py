@@ -28,6 +28,7 @@ class VerticalActuatorsController(QObject):
         self.pid_controllers = [PIDController(0, 0, 0, 0, 0.2),
                                 PIDController(0, 0, 0, 0, 0.2)]
         self.target_forces = [0, 0]
+        self.linear_stage_velocity = 0
         self.loop_timer = QTimer()
         self.loop_timer.timeout.connect(self.run)
         self.loop_timer.start(self.sampling_time)
@@ -74,7 +75,8 @@ class VerticalActuatorsController(QObject):
 
     def set_horizontal_target_speed(self, speed):
         if self.jrk_interface.get_connected():
-            self.jrk_interface.send_horizontal(speed)
+            self.jrk_interface.send_horizontal(speed*0.78125)
+            self.linear_stage_velocity = speed*0.78125
             print("Sent")
 
     def set_pid_params(self, controller_id: int, kp: float, ki: float, kd: float, i_limit: float):

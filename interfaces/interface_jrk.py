@@ -65,7 +65,6 @@ class JRKInterface(QObject):
         print(command)
         self.serial_port.write(command.encode())
 
-
     def get_position(self) -> [int, int, int]:
 
         status_x = yaml.safe_load(jrk2cmd('-d', '00425280', '-s', '--full'))
