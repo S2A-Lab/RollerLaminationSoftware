@@ -1,8 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 
-from interfaces.interface_phidget import PhidgetInterface
-from interfaces.interface_ui import UIInterface
-from modules.module_data_logger import DataLoggerModule
+from Backend.Interfaces.interface_ui import UIInterface
+from Backend.DataLogger.module_data_logger import DataLoggerModule
 
 
 class PlotUpdateModule(QObject):

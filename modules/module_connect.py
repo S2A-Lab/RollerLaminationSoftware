@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from interfaces.interface_jrk import JRKInterface
-from interfaces.interface_phidget import PhidgetInterface
+from Backend.Interfaces.interface_jrk import JRKInterface
+from Backend.Interfaces.interface_phidget import PhidgetInterface
 
 
 class ConnectModule(QObject):

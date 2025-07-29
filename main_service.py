@@ -1,17 +1,14 @@
-from warnings import catch_warnings
+from PyQt6.QtCore import QThread
+from PyQt6.QtWidgets import QMainWindow, QLineEdit, QPushButton, QMessageBox
 
-from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QMessageBox, QStyle, QStyleOptionButton
-
-from controllers.pid_controller import PIDController
-from interfaces.interface_jrk import JRKInterface, get_ports
-from interfaces.interface_phidget import PhidgetInterface
-from interfaces.interface_ui import UIInterface
+from Backend.Interfaces.interface_jrk import JRKInterface
+from Backend.Interfaces.interface_phidget import PhidgetInterface
+from Backend.Interfaces.interface_ui import UIInterface
 from modules.module_connect import ConnectModule
 from modules.module_device_update import DeviceUpdateModule
-from modules.module_vertical_actuators_controller import VerticalActuatorsController
+from modules.module_actuators_controller import ActuatorsController
 from modules.module_plot_update import PlotUpdateModule
-from modules.module_data_logger import DataLoggerModule
+from Backend.DataLogger.module_data_logger import DataLoggerModule
 
 
 class MainService(QMainWindow):
@@ -19,13 +16,13 @@ class MainService(QMainWindow):
         super().__init__()
 
         self.setWindowTitle('Laminator UI')
-        # Initialize interfaces
+        # Initialize Interfaces
         self.ui_interface = UIInterface()
         self.phidget_interface = PhidgetInterface()
         self.jrk_interface = JRKInterface()
 
         # Initialize PID controllers
-        self.linear_actuator_pid_module = VerticalActuatorsController(self.phidget_interface, self.jrk_interface)
+        self.linear_actuator_pid_module = ActuatorsController(self.phidget_interface, self.jrk_interface)
 
         # Initialize data logger
         self.data_logger_module = DataLoggerModule(self.phidget_interface, self.linear_actuator_pid_module)
@@ -289,12 +286,12 @@ class MainService(QMainWindow):
 
     def __start_force_control_button_clicked_handler(self, button: QPushButton):
         match self.linear_actuator_pid_module.controller_mode:
-            case VerticalActuatorsController.ControllerMode.TORQUE:
-                self.linear_actuator_pid_module.set_mode(VerticalActuatorsController.ControllerMode.POSITION)
+            case ActuatorsController.ControllerMode.TORQUE:
+                self.linear_actuator_pid_module.set_mode(ActuatorsController.ControllerMode.POSITION)
                 button.setText('Start Force Control')
                 button.setStyleSheet("background-color: green")
-            case VerticalActuatorsController.ControllerMode.POSITION:
-                self.linear_actuator_pid_module.set_mode(VerticalActuatorsController.ControllerMode.TORQUE)
+            case ActuatorsController.ControllerMode.POSITION:
+                self.linear_actuator_pid_module.set_mode(ActuatorsController.ControllerMode.TORQUE)
                 button.setText('Stop Force Control')
                 button.setStyleSheet("background-color: red")
 

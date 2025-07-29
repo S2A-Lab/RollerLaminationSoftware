@@ -70,9 +70,18 @@ void loop() {
         break;
     }
   } else {
-    if (Serial.available() > 0) {
-      String receivedString = Serial.readStringUntil('\n'); // Read until newline
-      target_speed_horizontal_stage = receivedString.toInt();                 // Convert to integer
+    if (Serial.available()) {
+      receivedString = Serial.readStringUntil('\n');   // Read input until newline
+      receivedString.trim();  // Remove any whitespace or newline characters
+
+      if (receivedString.equalsIgnoreCase("f")) {
+        // Special case for command "f"
+        Serial.println(stepper.currentPosition());
+        // Handle the 'f' command here...
+      } else if (receivedString.length() > 0 && receivedString.toInt() != 0 || receivedString == "0") {
+        // Check if the input is a valid integer
+        target_speed_horizontal_stage = receivedString.toInt();
+      }
     }
     int16_t x_fb = 0;
     int16_t y_fb = 0;

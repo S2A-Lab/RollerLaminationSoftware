@@ -1,15 +1,14 @@
-from PyQt5.QtGui import QIcon
+from PyQt6.QtGui import QIcon
 
-from datastruct.datastruct_timeseries import *
+from Backend.DataLogger.datastruct_timeseries import *
 from typing import Callable
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rcParams
 import matplotlib
-import matplotlib.pyplot as plt
 
-matplotlib.use('Qt5Agg')
+matplotlib.use('Qt6Agg')
 rcParams.update({'figure.autolayout': True})
 
 
@@ -39,10 +38,10 @@ class ControlLayout(QVBoxLayout):
         self.__jog_all_up_button = QPushButton()
         self.__jog_all_down_button = QPushButton()
         self.__jog_step_textfield.setPlaceholderText('Jog Step')
-        self.__jog_up_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_up.svg'))
-        self.__jog_down_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_down.svg'))
-        self.__jog_all_up_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_all_up.svg'))
-        self.__jog_all_down_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_all_down.svg'))
+        self.__jog_up_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_up.svg'))
+        self.__jog_down_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_down.svg'))
+        self.__jog_all_up_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_all_up.svg'))
+        self.__jog_all_down_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_all_down.svg'))
 
         self.__plot = PlotCanvas(width=5, height=4)
         self.addWidget(self.__plot)
@@ -128,9 +127,9 @@ class UIInterface(QWidget):
         self.__horizontal_stage_right_button: QPushButton = QPushButton('')
         self.__horizontal_stage_stop_button: QPushButton = QPushButton('')
 
-        self.__horizontal_stage_left_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_left.svg'))
-        self.__horizontal_stage_right_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_right.svg'))
-        self.__horizontal_stage_stop_button.setIcon(QIcon('interfaces/ui_interface/assets/icons/icon_stop.svg'))
+        self.__horizontal_stage_left_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_left.svg'))
+        self.__horizontal_stage_right_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_right.svg'))
+        self.__horizontal_stage_stop_button.setIcon(QIcon('Interfaces/ui_interface/assets/icons/icon_stop.svg'))
 
         self.__file_name_textfield.setPlaceholderText('Save file name')
         self.init_ui()

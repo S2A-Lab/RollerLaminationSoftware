@@ -1,9 +1,10 @@
 class PIDController:
-    def __init__(self, kp, ki, kd, i_limit, sampling_time):
+    def __init__(self, kp, ki, kd, i_limit, out_limit, sampling_time):
         self.kp = kp
         self.ki = ki
         self.kd = kd
         self.i_limit = i_limit
+        self.out_limit = out_limit
         self.error = 0.0
         self.prev_error = 0.0
 
@@ -24,7 +25,7 @@ class PIDController:
         elif self.i_term < -self.i_limit:
             self.i_term = -self.i_limit
 
-        return self.p_term + self.i_term + self.d_term
+        return max(-self.out_limit, min(self.p_term + self.i_term + self.d_term, self.out_limit))
 
     def clear_errors(self):
         self.error = 0.0
@@ -33,11 +34,12 @@ class PIDController:
         self.i_term = 0.0
         self.d_term = 0.0
 
-    def set_pid_params(self, kp, ki, kd, i_limit):
+    def set_pid_params(self, kp, ki, kd, i_limit, out_limit):
         self.kp = kp
         self.ki = ki
         self.kd = kd
         self.i_limit = i_limit
+        self.out_limit = out_limit
 
     def get_pid_params(self):
-        return [self.kp, self.ki, self.kd, self.i_limit]
+        return [self.kp, self.ki, self.kd, self.i_limit, self.out_limit]

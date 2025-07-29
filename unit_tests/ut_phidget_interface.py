@@ -1,4 +1,4 @@
-from interfaces.interface_phidget import *
+from Backend.Interfaces.interface_phidget import *
 
 pif = PhidgetInterface()
 pif.set_file_name("Test")

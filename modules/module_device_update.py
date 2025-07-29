@@ -2,8 +2,8 @@ import time
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from interfaces.interface_jrk import get_ports
-from interfaces.interface_ui import UIInterface
+from Backend.Interfaces.interface_jrk import get_ports
+from Backend.Interfaces.interface_ui import UIInterface
 
 
 class DeviceUpdateModule(QObject):
