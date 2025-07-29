@@ -28,7 +28,7 @@ class MainWindow(QtWidgets.QMainWindow):
     statusbar: QStatusBar
     foo_macro: QWidget
 
-    def __init__(self, vertical_widgets: [VerticalActuatorWidget, VerticalActuatorWidget], horizontal_widget: HorizontalLinearStageWidget, macro_widget: MacroControlWidget):
+    def __init__(self, vertical_widgets: (VerticalActuatorWidget, VerticalActuatorWidget), horizontal_widget: HorizontalLinearStageWidget, macro_widget: MacroControlWidget):
         super(MainWindow, self).__init__() # Call the inherited classes __init__ method
         uic.loadUi('Frontend/MainWindow/mainwindow.ui', self) # Load the .ui file
 

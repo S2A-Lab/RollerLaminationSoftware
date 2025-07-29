@@ -3,11 +3,14 @@ from abc import ABC,abstractmethod
 from PyQt6.QtCore import QObject, pyqtSignal, QThread
 
 class Worker(QObject,ABC):
-    finished = pyqtSignal()
+    finished : pyqtSignal
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
         super().__init__()
+        self.finished = pyqtSignal()
         pass
+
     @abstractmethod
     def run(self):
         pass

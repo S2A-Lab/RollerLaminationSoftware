@@ -14,7 +14,7 @@ if __name__ == '__main__':
     vertical_widget0 = VerticalActuatorWidget()
     vertical_widget1 = VerticalActuatorWidget()
     macro_widget = MacroControlWidget()
-    window = MainWindow([vertical_widget0, vertical_widget1],horizontal_widget, macro_widget)
+    window = MainWindow((vertical_widget0, vertical_widget1),horizontal_widget, macro_widget)
 
     window.XPositionDisp.display(999)
 

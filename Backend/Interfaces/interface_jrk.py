@@ -1,5 +1,3 @@
-from PyQt5.QtCore import QObject
-
 import subprocess
 import yaml
 
@@ -26,8 +24,6 @@ class JRKInterface:
 
     @staticmethod
     def get_position(vertical_axis: VerticalAxis) -> int:
-
         status_x = yaml.safe_load(jrk2cmd('-d', JRKInterface.channels[vertical_axis.value], '-s', '--full'))
         x = status_x['Scaled feedback']
-
         return int(x)

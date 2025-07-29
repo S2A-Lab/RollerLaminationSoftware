@@ -1,4 +1,3 @@
-from PyQt5.QtCore import QObject
 import serial
 from serial.tools import list_ports
 
@@ -41,7 +40,6 @@ class HorizontalStageInterface:
         HorizontalStageInterface.serial_port.write(("ac" + str(acceleration) + '\n').encode())
 
     @staticmethod
-
     def get_position():
         HorizontalStageInterface.serial_port.write("fb \r\n".encode())
         return int(HorizontalStageInterface.serial_port.readline())
