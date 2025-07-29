@@ -27,4 +27,4 @@ class HorizontalLinearStageWidget(QWidget):
 
     def __init__(self):
         super(HorizontalLinearStageWidget, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi('Frontend/HorizontalLinearStagetWidget/horizontallinearstagewidget.ui', self) # Load the .ui file
+        uic.loadUi('Frontend/GUI/HorizontalLinearStagetWidget/horizontallinearstagewidget.ui', self) # Load the .ui file

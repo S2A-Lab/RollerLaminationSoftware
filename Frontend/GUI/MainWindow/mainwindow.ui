@@ -35,32 +35,30 @@
       <layout class="QVBoxLayout" name="verticalLayout_19">
        <item>
         <widget class="QGroupBox" name="ZAxesForceGroup">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="title">
           <string>Z Axes Force</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_16">
-          <item>
-           <widget class="QGraphicsView" name="ZForce1Graph"/>
-          </item>
-          <item>
-           <widget class="QGraphicsView" name="ZForce2Graph"/>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_16"/>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="ZAxesPositionGroup">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="title">
           <string>Z Axes Position</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_13">
-          <item>
-           <widget class="QGraphicsView" name="ZPos1Graph"/>
-          </item>
-          <item>
-           <widget class="QGraphicsView" name="ZPos2Graph"/>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_13"/>
         </widget>
        </item>
        <item>
@@ -81,7 +79,7 @@
     <item>
      <widget class="QTabWidget" name="ControlTabBox">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="foo_device">
        <attribute name="title">
@@ -95,7 +93,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QGroupBox" name="VerticalAxis1ControlBox">
+            <widget class="QGroupBox" name="VerticalAxis0ControlBox">
              <property name="title">
               <string>Axis 1</string>
              </property>
@@ -103,7 +101,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="VerticalAxis2ControlBox">
+            <widget class="QGroupBox" name="VerticalAxis1ControlBox">
              <property name="title">
               <string>Axis 2</string>
              </property>

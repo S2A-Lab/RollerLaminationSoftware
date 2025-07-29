@@ -4,7 +4,8 @@ from PyQt6.QtCore import QObject, QTimer, QThread
 
 from Backend.DataLogger.datastruct_timeseries import Timeseries
 from Backend.Interfaces.interface_phidget import PhidgetInterface
-from Backend.Utilities.move_worker_to_thread import Worker, move_worker_to_thread
+from Backend.Interfaces.vertical_axis_base import VerticalAxis
+from Utilities.move_worker_to_thread import Worker, move_worker_to_thread
 from modules.module_actuators_controller import ActuatorsController
 
 
@@ -104,7 +105,8 @@ class DataLoggerModule(QObject):
 
             current_time = int(round(time.time() * 1000))
 
-            voltages = PhidgetInterface.get_calibrated_forces()
+            voltages = [PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0),
+                        PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0)]
             target = self.pid_module.target_forces
             output = self.pid_module.output
 

@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QApplication, QStyleFactory
-from Frontend.MainWindow.MainWindow import MainWindow
+from Frontend.GUI.MainWindow.MainWindow import MainWindow
 
-from Frontend.VerticalActuatorWidget.VerticalActuatorWidget import VerticalActuatorWidget
-from Frontend.MacroControlWidget.MacroControlWidget import MacroControlWidget
-from Frontend.HorizontalLinearStagetWidget.HorizontalLinearStageWidget import HorizontalLinearStageWidget
+from Frontend.GUI.VerticalActuatorWidget.VerticalActuatorWidget import VerticalActuatorWidget
+from Frontend.GUI.MacroControlWidget.MacroControlWidget import MacroControlWidget
+from Frontend.GUI.HorizontalLinearStagetWidget.HorizontalLinearStageWidget import HorizontalLinearStageWidget
 
 import sys
 
@@ -16,8 +16,8 @@ if __name__ == '__main__':
     macro_widget = MacroControlWidget()
     window = MainWindow((vertical_widget0, vertical_widget1),horizontal_widget, macro_widget)
 
-    window.XPositionDisp.display(999)
 
+    # window.XPositionDisp.display("")
     # with open("Interfaces/ui_interface/assets/icons/stylesheet.qss", "r") as stylesheet:
     #     app.setStyleSheet(stylesheet.read())
     # window = MainService()

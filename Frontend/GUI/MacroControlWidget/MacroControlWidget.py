@@ -28,4 +28,4 @@ class MacroControlWidget(QWidget):
 
     def __init__(self):
         super(MacroControlWidget, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi('Frontend/MacroControlWidget/macrocontrolwidget.ui', self) # Load the .ui file
+        uic.loadUi('Frontend/GUI/MacroControlWidget/macrocontrolwidget.ui', self) # Load the .ui file

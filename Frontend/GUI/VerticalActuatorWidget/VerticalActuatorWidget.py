@@ -32,4 +32,4 @@ class VerticalActuatorWidget(QWidget):
 
     def __init__(self):
         super(VerticalActuatorWidget, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi('Frontend/VerticalActuatorWidget/verticalactuatorwidget.ui', self) # Load the .ui file
+        uic.loadUi('Frontend/GUI/VerticalActuatorWidget/verticalactuatorwidget.ui', self) # Load the .ui file
