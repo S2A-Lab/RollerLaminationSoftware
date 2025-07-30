@@ -8,7 +8,7 @@ from modules.module_connect import ConnectModule
 from modules.module_device_update import DeviceUpdateModule
 from modules.module_actuators_controller import ActuatorsController
 from modules.module_plot_update import PlotUpdateModule
-from Backend.DataLogger.module_data_logger import DataLoggerModule
+from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
 
 
 class MainService(QMainWindow):
@@ -25,7 +25,7 @@ class MainService(QMainWindow):
         self.linear_actuator_pid_module = ActuatorsController(self.phidget_interface, self.jrk_interface)
 
         # Initialize data logger
-        self.data_logger_module = DataLoggerModule(self.phidget_interface, self.linear_actuator_pid_module)
+        self.data_logger_module = DataLoggerScheduler(self.phidget_interface, self.linear_actuator_pid_module)
 
         self.setCentralWidget(self.ui_interface)
         self.resize(500, 750)

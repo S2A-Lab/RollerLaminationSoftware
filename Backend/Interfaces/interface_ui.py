@@ -1,6 +1,6 @@
 from PyQt6.QtGui import QIcon
 
-from Backend.DataLogger.datastruct_timeseries import *
+from Backend.Schedulers.DataLogger.datastruct_timeseries import *
 from typing import Callable
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas

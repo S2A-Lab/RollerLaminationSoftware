@@ -1,7 +1,7 @@
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from Backend.DataLogger.datastruct_timeseries import Timeseries
+from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
 
 class PlotCanvas(FigureCanvas):
 

@@ -1,16 +1,15 @@
 from PyQt6 import QtWidgets
-from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QApplication
 
-from Backend.Schedulers.actuators_scheduler import ActuatorScheduler, ActuatorsControllerState
-from Backend.Schedulers.macro_step import MacroStep
+from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
+from Backend.Schedulers.ActionExecute.macro_step import MacroStep
 
 import sys
 
 class www(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-    MacroExec: ActuatorScheduler
+    MacroExec: ActionExecuteScheduler
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -38,11 +37,10 @@ if __name__ == '__main__':
     macro_step1.end_conditions.append(MacroStep.EndConditionTime(4000))
 
 
-    step_exec_controller = ActuatorScheduler()
-    step_exec_controller.run_step_sequence([macro_step0, macro_step1])
+    ActionExecuteScheduler.init()
+    ActionExecuteScheduler.run_step_sequence([macro_step0, macro_step1])
 
     window = www()
-    www.MacroExec = step_exec_controller
 
     # window.XPositionDisp.display(999)
 
