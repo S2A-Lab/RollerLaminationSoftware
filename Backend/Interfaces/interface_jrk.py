@@ -9,9 +9,22 @@ def jrk2cmd(*args):
 class JRKInterface:
     channels = ["00425280", "00425253"]
 
+    __connected = False
+    @staticmethod
+    def connect():
+        for idx, channel in enumerate(JRKInterface.channels):
+            if not channel in JRKInterface.get_devices_list():
+                print("Device not found.")
+                return
+        JRKInterface.__connected = True
+
+    @staticmethod
+    def disconnect():
+        JRKInterface.__connected = False
+
     @staticmethod
     def get_devices_list():
-        devices = yaml.safe_load(jrk2cmd('jrk2cmd','--list'))
+        devices = yaml.safe_load(jrk2cmd('--list'))
         return list(devices.keys()) if devices else []
 
     @staticmethod
@@ -27,3 +40,7 @@ class JRKInterface:
         status_x = yaml.safe_load(jrk2cmd('-d', JRKInterface.channels[vertical_axis.value], '-s', '--full'))
         x = status_x['Scaled feedback']
         return int(x)
+
+    @staticmethod
+    def is_connected():
+        return JRKInterface.__connected

@@ -76,6 +76,7 @@ class ActionExecuteScheduler:
                                     ActionExecuteScheduler.__vertical_target_positions[cast(int, actions.axis.value)] = actions.target
                         elif isinstance(actions, MacroStep.ActionChangeVerticalPIDParams):
                             actions : MacroStep.ActionChangeVerticalPIDParams
+                            print("P1")
                             if actions.axis == MacroStep.ActionChangeVerticalPIDParams.Axis.ALL:
                                 ActionExecuteScheduler.__pid_controllers[0].set_pid_params(actions.kp, actions.ki, actions.kd,
                                                                          actions.i_limit, actions.out_limit)
@@ -191,6 +192,10 @@ class ActionExecuteScheduler:
     @staticmethod
     def get_sequence_execution_end():
         return ActionExecuteScheduler.__sequence_execution_end
+
+    @staticmethod
+    def get_sequence_executing():
+        return not ActionExecuteScheduler.__sequence_execution_end
 
     @staticmethod
     def get_pid_parameters():

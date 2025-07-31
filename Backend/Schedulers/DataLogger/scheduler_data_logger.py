@@ -51,22 +51,29 @@ class DataLoggerScheduler:
     controller_modes       = [Timeseries(""),
                               Timeseries("")]
     horizontal_position    =  Timeseries("")
+
+    auto_start_end_recording = False
+    sampling_time = 10  # [ms]
+
+    __prev_executing = False
+    __executing = True
+
     __start_time  = 0
     __start_time_set = False
     __is_saving = False
     __recording = False
-    sampling_time = 10  # [ms]
+
     __data_save_worker = None
     __data_save_thread = QThread()
-    loop_timer : QTimer = QTimer()
+    __loop_timer : QTimer = QTimer()
 
     lb = 0
     ub = 1
 
     @staticmethod
     def init():
-        DataLoggerScheduler.loop_timer.timeout.connect(DataLoggerScheduler.update_data)
-        DataLoggerScheduler.loop_timer.start(DataLoggerScheduler.sampling_time)
+        DataLoggerScheduler.__loop_timer.timeout.connect(DataLoggerScheduler.update_data)
+        DataLoggerScheduler.__loop_timer.start(DataLoggerScheduler.sampling_time)
 
     @staticmethod
     def save_data():
@@ -158,6 +165,14 @@ class DataLoggerScheduler:
 
     @staticmethod
     def update_data():
+        DataLoggerScheduler.__executing = ActionExecuteScheduler.get_sequence_executing()
+        if DataLoggerScheduler.auto_start_end_recording:
+            if DataLoggerScheduler.__executing and not DataLoggerScheduler.__prev_executing:
+                DataLoggerScheduler.start_recording()
+            elif not DataLoggerScheduler.__executing and DataLoggerScheduler.__prev_executing:
+                DataLoggerScheduler.stop_recording()
+        DataLoggerScheduler.__prev_executing = DataLoggerScheduler.__executing
+
         if PhidgetInterface.get_connected() and HorizontalStageInterface.get_connected() and DataLoggerScheduler.__recording:
             if not DataLoggerScheduler.__start_time_set:
                 DataLoggerScheduler.__start_time = int(round(time.time() * 1000))
@@ -183,7 +198,6 @@ class DataLoggerScheduler:
             # Update bounds
             DataLoggerScheduler.lb = min(*feedback_forces, *target_positions)
             DataLoggerScheduler.ub = max(*feedback_forces, *target_positions)
-
             # Fetch control parameters
             pid_params = ActionExecuteScheduler.get_pid_parameters()  # [pid_param0, pid_param1]
             controller_modes = ActionExecuteScheduler.get_vertical_modes()  # [controller_mode0, controller_mode1]
