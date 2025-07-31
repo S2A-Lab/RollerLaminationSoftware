@@ -41,7 +41,6 @@ class ActionExecuteScheduler:
         ActionExecuteScheduler.__loop_timer.start(ActionExecuteScheduler.__sampling_time)
         ActionExecuteScheduler.initialized = False
         ActionExecuteScheduler.horizontal_target_speed = 0
-        print("P1")
 
     @staticmethod
     def run():
@@ -53,7 +52,6 @@ class ActionExecuteScheduler:
             match ActionExecuteScheduler.__step_execute_state:
                 # At start stage parse actions and load to the scheduler
                 case ActuatorsControllerState.START:
-                    print("Start Step")
                     for actions in ActionExecuteScheduler.__step_loaded.actions:
                         if isinstance(actions, MacroStep.ActionMoveHorizontal):
                             actions : MacroStep.ActionMoveHorizontal
@@ -144,13 +142,11 @@ class ActionExecuteScheduler:
                 case ActuatorsControllerState.END:
                     if ActionExecuteScheduler.__sequence_index + 1 < len(ActionExecuteScheduler.__step_sequence):
                         ActionExecuteScheduler.__sequence_index += 1
-                        print("End Step")
                         ActionExecuteScheduler.__step_loaded = ActionExecuteScheduler.__step_sequence[ActionExecuteScheduler.__sequence_index]
                         ActionExecuteScheduler.__step_execute_state = ActuatorsControllerState.START
                     else:
                         if not ActionExecuteScheduler.__sequence_execution_end:
                             ActionExecuteScheduler.__sequence_execution_end = True
-                            print("Execution End")
 
             # Execute
             for i in range(VerticalAxis.AXIS_COUNT.value):

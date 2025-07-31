@@ -32,7 +32,7 @@ class PlotCanvas(FigureCanvas):
             self.line_actual.set_xdata(data_actual.timestamp)
 
         self.axes.relim()  # Recalculate limits
-        self.axes.autoscale_view(True, True, False)  # Autoscale
+        self.axes.autoscale_view(True, True, True)  # Autoscale
         self.draw()
 
     def update_y_limits(self, lb, up):

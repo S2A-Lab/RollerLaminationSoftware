@@ -2,10 +2,11 @@ from PyQt6 import QtWidgets, uic
 from PyQt6.QtWidgets import QGroupBox, QLCDNumber, QMenu, QStatusBar, QWidget
 from PyQt6.QtGui import QAction
 
+from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
+from Frontend.GUI.HorizontalLinearStagetWidget.horizontal_linear_stage_widget import HorizontalLinearStageWidget
+from Frontend.GUI.MacroControlWidget.main_control_widget import MacroControlWidget
 from Frontend.GUI.PlotCanvas.plot_canvas import PlotCanvas
 from Frontend.GUI.VerticalActuatorWidget import VerticalActuatorWidget
-from Frontend.GUI.MacroControlWidget import MacroControlWidget
-from Frontend.GUI.HorizontalLinearStagetWidget import HorizontalLinearStageWidget
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -49,4 +50,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[0])
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[1])
 
-    # def load_widgets(self):
+    def update_plot(self,
+                    target_force_axis_0: Timeseries, target_force_axis_1: Timeseries,
+                    feedback_force_axis_0: Timeseries, feedback_force_axis_1: Timeseries,
+                    target_position_axis_0: Timeseries, target_position_axis_1: Timeseries,
+                    feedback_position_axis_0: Timeseries, feedback_position_axis_1: Timeseries,):
+
+        self.z_force_canvas[0].update_data(target_force_axis_0, feedback_force_axis_0)
+        self.z_force_canvas[1].update_data(target_force_axis_1, feedback_force_axis_1)
+        self.z_position_canvas[0].update_data(target_position_axis_0, feedback_position_axis_0)
+        self.z_position_canvas[1].update_data(target_position_axis_1, feedback_position_axis_1)

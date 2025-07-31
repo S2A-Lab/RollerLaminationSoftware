@@ -1,8 +1,11 @@
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 
 from PyQt6.QtCore import QObject, pyqtSignal, QThread
 
-class Worker(QObject,ABC):
+class MetaQObjectABC(type(QObject), ABCMeta):
+    pass
+
+class Worker(QObject,metaclass=MetaQObjectABC):
     finished : pyqtSignal
 
     @abstractmethod

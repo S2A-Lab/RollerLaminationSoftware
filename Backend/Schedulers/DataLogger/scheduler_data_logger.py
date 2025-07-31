@@ -1,8 +1,9 @@
-import time
+import time, os
 from itertools import chain
 from PyQt6.QtCore import QObject, QTimer, QThread
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
+from Backend.Interfaces.interface_jrk import JRKInterface
 from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
 from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
@@ -22,17 +23,21 @@ class DataSaveWorker(Worker):
     def run(self):
         for dataset in self.datasets:
             dataset.save_data()
-
+        DataLoggerScheduler.__is_saving = False
 
 class DataLoggerScheduler:
     __file_name: str = ""
 
-    target_position_data   = [Timeseries(""),
-                              Timeseries("")]
-    feedback_data          = [Timeseries(""),
-                              Timeseries("")]
-    output_data            = [Timeseries(""),
-                              Timeseries("")]
+    feedback_position   = [Timeseries(""),
+                           Timeseries("")]
+    target_position   = [Timeseries(""),
+                         Timeseries("")]
+    feedback_force          = [Timeseries(""),
+                               Timeseries("")]
+    target_force          = [Timeseries(""),
+                             Timeseries("")]
+    duty_cycle            = [Timeseries(""),
+                             Timeseries("")]
     p_data                 = [Timeseries(""),
                               Timeseries("")]
     i_data                 = [Timeseries(""),
@@ -48,30 +53,36 @@ class DataLoggerScheduler:
     horizontal_position    =  Timeseries("")
     __start_time  = 0
     __start_time_set = False
+    __is_saving = False
+    __recording = False
     sampling_time = 10  # [ms]
     __data_save_worker = None
     __data_save_thread = QThread()
     loop_timer : QTimer = QTimer()
+
     lb = 0
     ub = 1
-    
+
     @staticmethod
     def init():
-        DataLoggerScheduler.loop_timer.timeout.connect()
+        DataLoggerScheduler.loop_timer.timeout.connect(DataLoggerScheduler.update_data)
         DataLoggerScheduler.loop_timer.start(DataLoggerScheduler.sampling_time)
 
     @staticmethod
     def save_data():
+        DataLoggerScheduler.__is_saving = True
         fields = [
-            "target_position_data",
-            "feedback_data",
-            "output_data",
+            "feedback_position",
+            "target_position",
+            "feedback_force",
+            "target_force",
+            "duty_cycle",
             "p_data",
             "i_data",
             "d_data",
             "ilim_data",
+            "olim_data",
             "controller_modes",
-            "olim_data"
         ]
 
         data_streams = list(chain.from_iterable(getattr(DataLoggerScheduler, field) for field in fields))
@@ -87,45 +98,54 @@ class DataLoggerScheduler:
     @staticmethod
     def clear_data():
         fields_with_indices = [
-            "target_position_data",
-            "feedback_data",
-            "output_data",
+            "feedback_position",
+            "target_position",
+            "feedback_force",
+            "target_force",
+            "duty_cycle",
             "p_data",
             "i_data",
             "d_data",
             "ilim_data",
-            "controller_modes"
-            "olim_data"
+            "olim_data",
+            "controller_modes",
         ]
 
         for field in fields_with_indices:
             for i in range(2):
                 getattr(DataLoggerScheduler, field)[i].reset()
-
+        DataLoggerScheduler.horizontal_position.reset()
         DataLoggerScheduler.lb = 0
         DataLoggerScheduler.ub = 1
+
+    @staticmethod
+    def start_recording():
+        DataLoggerScheduler.__recording = True
         if PhidgetInterface.get_connected():
-            DataLoggerScheduler.__start_time_set = True
-            DataLoggerScheduler.__start_time = int(round(time.time() * 1000))
-        else:
             DataLoggerScheduler.__start_time_set = False
+
+    @staticmethod
+    def stop_recording():
+        DataLoggerScheduler.__recording = False
 
     @staticmethod
     def set_file_name(file_name: str):
         DataLoggerScheduler.__file_name = file_name
 
         pairs = [
-            ("target_position_data", "_target_position_{}"),
-            ("feedback_data", "_feedback_{}"),
-            ("output_data", "_output_{}"),
-            ("p_data", "_p_gain_{}"),
-            ("i_data", "_i_gain_{}"),
-            ("d_data", "_d_gain_{}"),
-            ("ilim_data", "_i_limit_{}"),
-            ("controller_modes", "_controller_mode_{}"),
-            ("olim_data", "_out_limit_{}"),
+            ("target_position", "/target_position_{}"),
+            ("feedback_position", "/feedback_position_{}"),
+            ("target_force", "/target_force_{}"),
+            ("feedback_force", "/feedback_force_{}"),
+            ("duty_cycle","/duty_cycle_{}"),
+            ("p_data", "/p_gain_{}"),
+            ("i_data", "/i_gain_{}"),
+            ("d_data", "/d_gain_{}"),
+            ("ilim_data", "/i_limit_{}"),
+            ("olim_data", "/out_limit_{}"),
+            ("controller_modes", "/controller_mode_{}")
         ]
-
+        os.mkdir(DataLoggerScheduler.__file_name)
         for field, suffix_format in pairs:
             for i in range(2):
                 getattr(DataLoggerScheduler, field)[i].set_filename(
@@ -133,49 +153,64 @@ class DataLoggerScheduler:
                 )
 
         DataLoggerScheduler.horizontal_position.set_filename(
-            DataLoggerScheduler.__file_name + "_position"
+            DataLoggerScheduler.__file_name + "_horizontal_position"
         )
 
     @staticmethod
     def update_data():
-        if PhidgetInterface.get_connected() and HorizontalStageInterface.get_connected():
+        if PhidgetInterface.get_connected() and HorizontalStageInterface.get_connected() and DataLoggerScheduler.__recording:
             if not DataLoggerScheduler.__start_time_set:
                 DataLoggerScheduler.__start_time = int(round(time.time() * 1000))
                 DataLoggerScheduler.__start_time_set = True
 
             current_time = int(round(time.time() * 1000))
 
-            voltages = [PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0),
-                        PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0)]
-            target = ActionExecuteScheduler.get_vertical_target_position()
-            output = ActionExecuteScheduler.get_vertical_duty_cycles()
+            timestamp = current_time - DataLoggerScheduler.__start_time
 
-            DataLoggerScheduler.feedback_data[0].update_data(current_time - DataLoggerScheduler.__start_time, voltages[0])
-            DataLoggerScheduler.feedback_data[1].update_data(current_time - DataLoggerScheduler.__start_time, voltages[1])
-            DataLoggerScheduler.target_position_data[0].update_data(current_time - DataLoggerScheduler.__start_time, target[0])
-            DataLoggerScheduler.target_position_data[1].update_data(current_time - DataLoggerScheduler.__start_time, target[1])
-            DataLoggerScheduler.output_data[0].update_data(current_time - DataLoggerScheduler.__start_time, output[0])
-            DataLoggerScheduler.output_data[1].update_data(current_time - DataLoggerScheduler.__start_time, output[1])
+            # Fetch target and feedback data
+            target_forces = ActionExecuteScheduler.get_vertical_target_force()
+            feedback_forces = [
+                PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0),
+                PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_1)
+            ]
+            target_positions = ActionExecuteScheduler.get_vertical_target_position()
+            feedback_positions = [
+                JRKInterface.get_position(VerticalAxis.AXIS_0),
+                JRKInterface.get_position(VerticalAxis.AXIS_1)
+            ]
+            duty_cycles = ActionExecuteScheduler.get_vertical_duty_cycles()
 
-            DataLoggerScheduler.lb = min(voltages[0], voltages[1], target[0], target[1])
-            DataLoggerScheduler.ub = max(voltages[0], voltages[1], target[0], target[1])
+            # Update bounds
+            DataLoggerScheduler.lb = min(*feedback_forces, *target_positions)
+            DataLoggerScheduler.ub = max(*feedback_forces, *target_positions)
 
-            [pid_param0,pid_param1] = ActionExecuteScheduler.get_pid_parameters()
-            [controller_mode0, controller_mode1] = ActionExecuteScheduler.get_vertical_modes()
+            # Fetch control parameters
+            pid_params = ActionExecuteScheduler.get_pid_parameters()  # [pid_param0, pid_param1]
+            controller_modes = ActionExecuteScheduler.get_vertical_modes()  # [controller_mode0, controller_mode1]
 
-            DataLoggerScheduler.p_data[0].update_data(current_time - DataLoggerScheduler.__start_time,pid_param0[0])
-            DataLoggerScheduler.i_data[0].update_data(current_time - DataLoggerScheduler.__start_time,pid_param0[1])
-            DataLoggerScheduler.d_data[0].update_data(current_time - DataLoggerScheduler.__start_time,pid_param0[2])
-            DataLoggerScheduler.ilim_data[0].update_data(current_time - DataLoggerScheduler.__start_time, pid_param0[3])
-            DataLoggerScheduler.olim_data[0].update_data(current_time - DataLoggerScheduler.__start_time, pid_param0[4])
+            # Log scalar data
+            for i in range(2):
+                DataLoggerScheduler.target_force[i].update_data(timestamp, target_forces[i])
+                DataLoggerScheduler.feedback_force[i].update_data(timestamp, feedback_forces[i])
+                DataLoggerScheduler.target_position[i].update_data(timestamp, target_positions[i])
+                DataLoggerScheduler.feedback_position[i].update_data(timestamp, feedback_positions[i])
+                DataLoggerScheduler.duty_cycle[i].update_data(timestamp, duty_cycles[i])
 
-            DataLoggerScheduler.p_data[1].update_data(current_time - DataLoggerScheduler.__start_time, pid_param1[0])
-            DataLoggerScheduler.i_data[1].update_data(current_time - DataLoggerScheduler.__start_time, pid_param1[1])
-            DataLoggerScheduler.d_data[1].update_data(current_time - DataLoggerScheduler.__start_time, pid_param1[2])
-            DataLoggerScheduler.ilim_data[1].update_data(current_time - DataLoggerScheduler.__start_time, pid_param1[3])
-            DataLoggerScheduler.olim_data[1].update_data(current_time - DataLoggerScheduler.__start_time, pid_param1[4])
+            # Log PID data
+            for i, pid in enumerate(pid_params):
+                DataLoggerScheduler.p_data[i].update_data(timestamp, pid[0])
+                DataLoggerScheduler.i_data[i].update_data(timestamp, pid[1])
+                DataLoggerScheduler.d_data[i].update_data(timestamp, pid[2])
+                DataLoggerScheduler.ilim_data[i].update_data(timestamp, pid[3])
+                DataLoggerScheduler.olim_data[i].update_data(timestamp, pid[4])
 
-            DataLoggerScheduler.controller_modes[0].update_data(current_time - DataLoggerScheduler.__start_time, controller_mode0)
-            DataLoggerScheduler.controller_modes[1].update_data(current_time - DataLoggerScheduler.__start_time, controller_mode1)
+            # Log controller modes
+            for i, mode in enumerate(controller_modes):
+                DataLoggerScheduler.controller_modes[i].update_data(timestamp, mode)
 
-            DataLoggerScheduler.horizontal_position.update_data(current_time - DataLoggerScheduler.__start_time, ActionExecuteScheduler.get_horizontal_target_position())
+            # Log horizontal position
+            DataLoggerScheduler.horizontal_position.update_data(timestamp, HorizontalStageInterface.get_position())
+
+    @staticmethod
+    def get_is_saving():
+        return DataLoggerScheduler.__is_saving
