@@ -131,6 +131,9 @@
     <widget class="QLCDNumber" name="PositionLCD"/>
    </item>
    <item>
+    <widget class="QDoubleSpinBox" name="TargetForceSpinBox"/>
+   </item>
+   <item>
     <widget class="QPushButton" name="StartForceBtn">
      <property name="text">
       <string>Start Force Control</string>

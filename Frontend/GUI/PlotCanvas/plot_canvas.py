@@ -17,6 +17,7 @@ class PlotCanvas(FigureCanvas):
         self.init_plot()
         self.maximum_time = 30.0 # [sec]
         self.auto_x = True
+        self.maximum_plot_time = 10
 
     def init_plot(self):
         self.line_actual, = self.axes.plot([], [], 'r-')
@@ -27,7 +28,8 @@ class PlotCanvas(FigureCanvas):
         self.fig.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)  # Adjust margins
 
     def update_data(self, data_ref: Timeseries, data_actual: Timeseries):
-        def update_line(line, data, ref_time, auto_x):
+
+        def update_line(line, data, plot_time_length, auto_x):
             if len(data.data) == 0:
                 return
 
@@ -35,14 +37,12 @@ class PlotCanvas(FigureCanvas):
                 line.set_ydata(data.data)
                 line.set_xdata(data.timestamp)
             else:
-                index = bisect.bisect_right(data.timestamp, data.timestamp[-1]-ref_time)
+                index = bisect.bisect_right(data.timestamp, data.timestamp[-1] - plot_time_length)
                 line.set_ydata(data.data[index:])
                 line.set_xdata(data.timestamp[index:])
 
-        ref_time = data_ref.timestamp[-1] if data_ref.timestamp else 0
-
-        update_line(self.line_ref, data_ref, ref_time, self.auto_x)
-        update_line(self.line_actual, data_actual, ref_time, self.auto_x)
+        update_line(self.line_ref, data_ref, self.maximum_plot_time * 1000.0, self.auto_x)
+        update_line(self.line_actual, data_actual,  self.maximum_plot_time * 1000.0, self.auto_x)
 
         self.axes.relim()  # Recalculate limits
         self.axes.autoscale_view(True, True, True)  # Autoscale
@@ -52,10 +52,7 @@ class PlotCanvas(FigureCanvas):
         self.axes.set_ylim(lb, up)
 
     def set_auto_x(self, auto_x: bool):
-        if auto_x:
-            pass
-        else:
-            pass
+        self.auto_x = auto_x
 
-    def set_maximum_plot(time):
-        pass
+    def set_maximum_plot_time(self, time):
+        self.maximum_plot_time = time

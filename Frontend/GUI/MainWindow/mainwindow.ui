@@ -36,12 +36,12 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Sampling Time [ms]</string>
-            </property>
-           </widget>
-          </item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Sampling Time [ms]</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QSpinBox" name="SamplingTimeSpinBox"/>
          </item>
@@ -60,14 +60,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="PlotRangeSpinBox"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="SetPlotParamBtn">
-           <property name="text">
-            <string>Set</string>
-           </property>
-          </widget>
+          <widget class="QDoubleSpinBox" name="PlotRangeSpinBox"/>
          </item>
         </layout>
        </item>
@@ -179,7 +172,7 @@
      <x>0</x>
      <y>0</y>
      <width>862</width>
-     <height>22</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuRoller_Lamination_Controller">

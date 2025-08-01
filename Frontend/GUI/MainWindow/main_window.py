@@ -1,12 +1,15 @@
 from PyQt6 import QtWidgets, uic
-from PyQt6.QtWidgets import QGroupBox, QLCDNumber, QMenu, QStatusBar, QWidget
+from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt6.QtWidgets import QGroupBox, QLCDNumber, QMenu, QStatusBar, QWidget, QSpinBox, QCheckBox, QPushButton
 from PyQt6.QtGui import QAction
 
+from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
 from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
+from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
 from Frontend.GUI.HorizontalLinearStagetWidget.horizontal_linear_stage_widget import HorizontalLinearStageWidget
-from Frontend.GUI.MacroControlWidget.main_control_widget import MacroControlWidget
+from Frontend.GUI.MacroControlWidget.macro_control_widget import MacroControlWidget
 from Frontend.GUI.PlotCanvas.plot_canvas import PlotCanvas
-from Frontend.GUI.VerticalActuatorWidget import VerticalActuatorWidget
+from Frontend.GUI.VerticalActuatorWidget.vertical_actuator_widget import VerticalActuatorWidget
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,6 +34,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     z_force_canvas:                   list[PlotCanvas]
     z_position_canvas:                list[PlotCanvas]
+    __run_thread :                    QThread
+    __interval : int
+
+    SamplingTimeSpinBox: QSpinBox
+    PlotRangeSpinBox: QSpinBox
+    AutoSizeXCheckBox: QCheckBox
 
     def __init__(self, vertical_widgets: (VerticalActuatorWidget, VerticalActuatorWidget), horizontal_widget: HorizontalLinearStageWidget, macro_widget: MacroControlWidget):
         super(MainWindow, self).__init__() # Call the inherited classes __init__ method
@@ -50,13 +59,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[0])
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[1])
 
-    def update_plot(self,
-                    target_force_axis_0: Timeseries, target_force_axis_1: Timeseries,
-                    feedback_force_axis_0: Timeseries, feedback_force_axis_1: Timeseries,
-                    target_position_axis_0: Timeseries, target_position_axis_1: Timeseries,
-                    feedback_position_axis_0: Timeseries, feedback_position_axis_1: Timeseries,):
+        self.PlotRangeSpinBox.valueChanged.connect(self.__update_plot_params)
+        self.SamplingTimeSpinBox.valueChanged.connect(self.__update_plot_params)
+        self.AutoSizeXCheckBox.stateChanged.connect(self.__update_plot_params)
 
-        self.z_force_canvas[0].update_data(target_force_axis_0, feedback_force_axis_0)
-        self.z_force_canvas[1].update_data(target_force_axis_1, feedback_force_axis_1)
-        self.z_position_canvas[0].update_data(target_position_axis_0, feedback_position_axis_0)
-        self.z_position_canvas[1].update_data(target_position_axis_1, feedback_position_axis_1)
+        self.__run_thread = QThread()
+        self.__run_thread.run = self.__run
+        self.__interval = 20
+        self.__run_thread.start()
+
+    def __update_plot_params(self):
+        pass
+        self.z_force_canvas[0].set_maximum_plot_time(self.PlotRangeSpinBox.value())
+        self.z_force_canvas[1].set_maximum_plot_time(self.PlotRangeSpinBox.value())
+        self.z_position_canvas[0].set_maximum_plot_time(self.PlotRangeSpinBox.value())
+        self.z_position_canvas[1].set_maximum_plot_time(self.PlotRangeSpinBox.value())
+
+        self.z_force_canvas[0].set_auto_x(self.AutoSizeXCheckBox.isChecked())
+        self.z_force_canvas[1].set_auto_x(self.AutoSizeXCheckBox.isChecked())
+        self.z_position_canvas[0].set_auto_x(self.AutoSizeXCheckBox.isChecked())
+        self.z_position_canvas[1].set_auto_x(self.AutoSizeXCheckBox.isChecked())
+
+        self.__interval = int(self.SamplingTimeSpinBox.value())
+
+    def __run(self):
+        while True:
+            self.z_force_canvas[0].update_data(DataLoggerScheduler.feedback_force[0], DataLoggerScheduler.target_force[0])
+            self.z_force_canvas[1].update_data(DataLoggerScheduler.feedback_force[1], DataLoggerScheduler.target_force[1])
+            self.z_position_canvas[0].update_data(DataLoggerScheduler.feedback_position[0], DataLoggerScheduler.target_position[0])
+            self.z_position_canvas[1].update_data(DataLoggerScheduler.feedback_position[1], DataLoggerScheduler.target_position[1])
+            self.XPositionDisp.display(HorizontalStageInterface.get_position())
+            QThread.msleep(self.__interval)

@@ -5,6 +5,7 @@ class MacroStep:
     def __init__(self):
         self.actions = []
         self.end_conditions = []
+        self.name = "Step"
 
     class ActionChangeVerticalPIDParams:
         class Axis(Enum):

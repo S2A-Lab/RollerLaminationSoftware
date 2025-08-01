@@ -60,23 +60,16 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit"/>
-       </item>
        <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="SpeedSpinBox_2"/>
+        <widget class="QDoubleSpinBox" name="SpeedSpinBox"/>
        </item>
        <item row="3" column="1">
         <widget class="QDoubleSpinBox" name="AccelSpinBox"/>
        </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="PosStepSpinBox"/>
+       </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QPushButton" name="YAxisParamSetBtn">
-       <property name="text">
-        <string>Set</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
