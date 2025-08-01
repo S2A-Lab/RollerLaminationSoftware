@@ -1,6 +1,7 @@
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QThread, pyqtSignal
-from PyQt6.QtWidgets import QGroupBox, QLCDNumber, QMenu, QStatusBar, QWidget, QSpinBox, QCheckBox, QPushButton
+from PyQt6.QtWidgets import QGroupBox, QLCDNumber, QMenu, QStatusBar, QWidget, QSpinBox, QCheckBox, QPushButton, \
+    QSizePolicy
 from PyQt6.QtGui import QAction
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
@@ -51,13 +52,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.VerticalAxis1ControlBox.layout().addWidget(vertical_widgets[1])
         self.foo_macro.layout().addWidget(macro_widget)
 
-        self.z_force_canvas = [PlotCanvas(width=5, height=4) for _ in range(2)]
-        self.z_position_canvas = [PlotCanvas(width=5, height=4) for _ in range(2)]
+        self.z_force_canvas = [PlotCanvas(width=5, height=4, parent=self.ZAxesForceGroup) for _ in range(2)]
+        self.z_position_canvas = [PlotCanvas(width=5, height=4, parent=self.ZAxesPositionGroup) for _ in range(2)]
 
         self.ZAxesForceGroup.layout().addWidget(self.z_force_canvas[0])
         self.ZAxesForceGroup.layout().addWidget(self.z_force_canvas[1])
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[0])
         self.ZAxesPositionGroup.layout().addWidget(self.z_position_canvas[1])
+
+        self.z_force_canvas[0].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.z_force_canvas[1].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.z_position_canvas[0].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.z_position_canvas[1].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.PlotRangeSpinBox.valueChanged.connect(self.__update_plot_params)
         self.SamplingTimeSpinBox.valueChanged.connect(self.__update_plot_params)
