@@ -1,11 +1,15 @@
 from PyQt6 import uic
 from PyQt6.QtCore import QStringListModel
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import (
-    QWidget, QPushButton, QTabWidget, QColumnView, QLineEdit, QSizePolicy,QListView
-)
+from PyQt6.QtWidgets import (QWidget, QPushButton, QTabWidget, QColumnView, QLineEdit,QListView)
 
 from Backend.Schedulers.ActionExecute.macro_step import MacroStep
+from Frontend.GUI.MacroControlWidget.ActionMoveHorizontalWidget.action_move_horizontal_widget import \
+    ActionMoveHorizontalWidget
+from Frontend.GUI.MacroControlWidget.ActionMoveVerticalWidget.action_move_vertical_widget import ActionMoveVerticalWidget
+from Frontend.GUI.MacroControlWidget.ActionSetPIDWidget.action_set_pid_widget import ActionSetPIDWidget
+from Frontend.GUI.MacroControlWidget.EndConditionForce.end_force_widget import EndForceWidget
+from Frontend.GUI.MacroControlWidget.EndConditionPosition.end_position_widget import EndPositionWidget
+from Frontend.GUI.MacroControlWidget.EndTimeWidget.end_time_widget import EndTimeWidget
 
 
 class TwoColumnFixedView(QColumnView):
@@ -40,21 +44,17 @@ class TwoColumnFixedView(QColumnView):
 class MacroControlWidget(QWidget):
     StepView: QListView
     EndConditionView: QListView
-    OperationView: QListView
+    ActionView: QListView
     DeleteBtn: QPushButton
     MoveDownBtn: QPushButton
     MoveUpBtn: QPushButton
 
     AddStepBtn: QPushButton
-    OperationAddBtn: QPushButton
-    OperationTab: QTabWidget
-    tab: QWidget
-    tab_2: QWidget
+    ActionAddBtn: QPushButton
+    ActionTab: QTabWidget
 
     EndConditionAddBtn: QPushButton
     EndConditionTab: QTabWidget
-    tab_3: QWidget
-    tab_4: QWidget
 
     ForceStopBtn: QPushButton
     PauseBtn: QPushButton
@@ -64,13 +64,18 @@ class MacroControlWidget(QWidget):
 
     StepNameLineEdit: QLineEdit
 
-    __action_sequence: list[MacroStep]
-    __data_model: QStandardItemModel
+    __step_sequence: list[MacroStep]
+    __step_model : QStringListModel
+    __action_model : QStringListModel
+    __end_condition_model : QStringListModel
+    __current_index : list[int]
+    __action_widgets : list[ActionMoveVerticalWidget|ActionSetPIDWidget|ActionMoveHorizontalWidget]
+    __end_condition_widgets : list[EndForceWidget|EndPositionWidget|EndTimeWidget]
 
     def __init__(self):
         super(MacroControlWidget, self).__init__() # Call the inherited classes __init__ method
         uic.loadUi('Frontend/GUI/MacroControlWidget/macrocontrolwidget.ui', self) # Load the .ui file
-        self.__action_sequence = []
+        self.__step_sequence = []
         self.__step_model = QStringListModel()
         self.__action_model = QStringListModel()
         self.__end_condition_model = QStringListModel()
@@ -79,45 +84,109 @@ class MacroControlWidget(QWidget):
         self.__action_strings = []
         self.__end_condition_strings = []
 
+        self.__current_index = [-1,-1,-1]
+
         self.StepView.setModel(self.__step_model)
         self.EndConditionView.setModel(self.__end_condition_model)
-        self.OperationView.setModel(self.__action_model)
+
+        self.ActionView.setModel(self.__action_model)
 
         self.AddStepBtn.clicked.connect(self.__add_step_btn)
+        self.ActionAddBtn.clicked.connect(self.__add_action_btn)
         self.EndConditionAddBtn.clicked.connect(self.__add_end_condition_btn)
+
+        self.StepView.clicked.connect(self.__step_view_clicked)
+        self.ActionView.clicked.connect(self.__action_view_clicked)
+        self.EndConditionView.clicked.connect(self.__end_condition_view_clicked)
+
+        self.__action_widgets = []
+        self.__action_widgets.append(ActionMoveVerticalWidget())
+        self.__action_widgets.append(ActionSetPIDWidget())
+        self.__action_widgets.append(ActionMoveHorizontalWidget())
+
+        self.__action_widgets_type = [action_widget.action.__class__.__name__ for action_widget in self.__action_widgets]
+
+        self.__end_condition_widgets = []
+        self.__end_condition_widgets.append(EndForceWidget())
+        self.__end_condition_widgets.append(EndPositionWidget())
+        self.__end_condition_widgets.append(EndTimeWidget())
+
+        self.__end_condition_widgets_type = [end_condition_widget.condition.__class__.__name__ for end_condition_widget in self.__end_condition_widgets]
+        self.ActionTab.clear()
+        self.EndConditionTab.clear()
+        for action_widget in self.__action_widgets:
+            self.ActionTab.addTab(action_widget,action_widget.__class__.__name__.replace('Action',''))
+        for end_condition_widget in self.__end_condition_widgets:
+            self.EndConditionTab.addTab(end_condition_widget,end_condition_widget.__class__.__name__.replace('EndCondition',''))
 
     def __add_step_btn(self):
         step_index = max(self.StepView.currentIndex().row(), -1) +1
-
         step = MacroStep()
         step.name = self.StepNameLineEdit.text()
-        self.__step_strings.insert(step_index, self.StepNameLineEdit.text())
-        self.__step_model.setStringList(self.__step_strings)
-        self.__action_sequence.insert(step_index, step)
-
-        index = self.__step_model.index(step_index)
-        self.StepView.setCurrentIndex(index)
+        self.__current_index = [step_index, -1, -1]
+        self.__step_sequence.insert(step_index, step)
+        self.__refresh_ui()
 
     def __add_end_condition_btn(self):
-        end_condition = MacroStep.EndConditionTime(1000)
-        step_index = max(self.StepView.currentIndex().row(), 0)
+        end_condition = self.__end_condition_widgets[self.EndConditionTab.currentIndex()].condition
         if len(self.__step_strings)<=0:
             self.__add_step_btn()
-        step_index_obj = self.__step_model.index(step_index)
-        self.StepView.setCurrentIndex(step_index_obj)
-        self.__end_condition_strings.append(self.StepNameLineEdit.text())
-        self.__end_condition_model.setStringList(self.__end_condition_strings)
-
-
+        self.__step_sequence[self.__current_index[0]].end_conditions.append(end_condition)
+        self.__current_index[2] += 1
+        self.__refresh_ui()
 
     def __add_action_btn(self):
-        action = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis.X0, MacroStep.ActionMoveVertical.Mode.POSITION)
-        step_index = max(self.StepView.currentIndex().row(), 0)
+        action = self.__action_widgets[self.ActionTab.currentIndex()].action
         if len(self.__step_strings)<=0:
             self.__add_step_btn()
-        step_index_obj = self.__step_model.index(step_index)
-        self.StepView.setCurrentIndex(step_index_obj)
-        self.__action_strings.append(self.StepNameLineEdit.text())
+        self.__step_sequence[self.__current_index[0]].actions.append(action)
+        self.__current_index[1] += 1
+        self.__refresh_ui()
+
+    def __step_view_clicked(self):
+        print(self.StepView.currentIndex().row())
+        self.__current_index[0] = self.StepView.currentIndex().row()
+        if len(self.__step_sequence) > 0:
+            self.__current_index[1] = len(self.__step_sequence[self.__current_index[0]].actions) - 1
+            self.__current_index[2] = len(self.__step_sequence[self.__current_index[0]].end_conditions) - 1
+        else:
+            self.__current_index[1] = -1
+            self.__current_index[2] = -1
+        self.__refresh_ui()
+
+    def __action_view_clicked(self):
+        self.__current_index[1] = self.ActionView.currentIndex().row()
+        index = self.__action_widgets_type.index(self.__step_sequence[self.__current_index[0]].actions[self.__current_index[1]].__class__.__name__)
+        self.ActionTab.setCurrentIndex(index)
+        self.__action_widgets[index].load_action(self.__step_sequence[self.__current_index[0]].actions[self.__current_index[1]])
+
+    def __end_condition_view_clicked(self):
+        self.__current_index[2] = self.EndConditionView.currentIndex().row()
+        index = self.__end_condition_widgets_type.index(self.__step_sequence[self.__current_index[0]].end_conditions[self.__current_index[2]].__class__.__name__)
+        self.EndConditionTab.setCurrentIndex(index)
+        self.__end_condition_widgets[index].load_condition(self.__step_sequence[self.__current_index[0]].end_conditions[self.__current_index[2]])
+
+    def __refresh_ui(self):
+        self.__step_strings = []
+
+        for step in self.__step_sequence:
+            self.__step_strings.append(step.name)
+        self.__action_strings = []
+        self.__end_condition_strings = []
+        if self.__current_index[0] < len(self.__step_strings):
+            for action in self.__step_sequence[self.__current_index[0]].actions:
+                self.__action_strings.append(action.__class__.__name__.replace('Action', ''))
+            for end_condition in self.__step_sequence[self.__current_index[0]].end_conditions:
+                self.__end_condition_strings.append(end_condition.__class__.__name__.replace('EndCondition', ''))
+
+        self.__step_model.setStringList(self.__step_strings)
         self.__action_model.setStringList(self.__action_strings)
+        self.__end_condition_model.setStringList(self.__end_condition_strings)
 
+        step_index = self.__step_model.index(self.__current_index[0])
+        action_index = self.__action_model.index(self.__current_index[1])
+        end_condition_index = self.__end_condition_model.index(self.__current_index[2])
 
+        self.StepView.setCurrentIndex(step_index)
+        self.ActionView.setCurrentIndex(action_index)
+        self.EndConditionView.setCurrentIndex(end_condition_index)

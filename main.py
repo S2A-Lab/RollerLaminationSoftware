@@ -22,11 +22,8 @@ if __name__ == '__main__':
     vertical_widget0 = VerticalActuatorWidget(VerticalAxis.AXIS_0)
     vertical_widget1 = VerticalActuatorWidget(VerticalAxis.AXIS_1)
 
-
     macro_widget = MacroControlWidget()
     window = MainWindow((vertical_widget0, vertical_widget1),horizontal_widget, macro_widget)
-
-    window.XPositionDisp.display("")
     # with open("Backend/Interfaces/ui_interface/assets/icons/stylesheet.qss", "r") as stylesheet:
     #     app.setStyleSheet(stylesheet.read())
     # window = MainService()

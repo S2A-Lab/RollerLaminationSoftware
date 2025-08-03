@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>299</height>
+    <height>307</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,11 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QSpinBox" name="spinBox"/>
+      <widget class="QSpinBox" name="StepSizeSpinBox">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="MoveUpBtn">
@@ -67,7 +71,11 @@
      <item>
       <layout class="QFormLayout" name="formLayout_2">
        <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="KpInput"/>
+        <widget class="QDoubleSpinBox" name="KpInput">
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="foo_labelkp">
@@ -77,7 +85,11 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="KiInput"/>
+        <widget class="QDoubleSpinBox" name="KiInput">
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="foo_labelki">
@@ -87,7 +99,11 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="KdInput"/>
+        <widget class="QDoubleSpinBox" name="KdInput">
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="foo_labelkd">
@@ -97,7 +113,11 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="ILimInput"/>
+        <widget class="QDoubleSpinBox" name="ILimInput">
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="foo_labelilim">
@@ -107,7 +127,11 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QDoubleSpinBox" name="OutLimInput"/>
+        <widget class="QDoubleSpinBox" name="OutLimInput">
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="foo_labeloutlim">
@@ -131,7 +155,11 @@
     <widget class="QLCDNumber" name="PositionLCD"/>
    </item>
    <item>
-    <widget class="QDoubleSpinBox" name="TargetForceSpinBox"/>
+    <widget class="QDoubleSpinBox" name="TargetForceSpinBox">
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="StartForceBtn">

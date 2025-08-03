@@ -10,8 +10,6 @@ from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
 from Utilities.move_worker_to_thread import Worker, move_worker_to_thread
 
-
-
 class DataSaveWorker(Worker):
     def stop(self):
         pass
