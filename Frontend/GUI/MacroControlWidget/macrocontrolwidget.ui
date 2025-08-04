@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1578</width>
-    <height>530</height>
+    <height>808</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,13 +19,70 @@
      <property name="title">
       <string>Macro Control</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
        <widget class="QSplitter" name="splitter_2">
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
         </property>
-        <widget class="QListView" name="StepView"/>
+        <widget class="QWidget" name="layoutWidget">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QListView" name="StepView"/>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="foo_1">
+            <property name="title">
+             <string>Steps</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_16">
+             <item>
+              <widget class="QLineEdit" name="StepNameLineEdit">
+               <property name="inputMask">
+                <string/>
+               </property>
+               <property name="placeholderText">
+                <string>Step Name</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="foo_0_0">
+               <item>
+                <widget class="QPushButton" name="MoveUpBtn">
+                 <property name="text">
+                  <string>Move Up</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="MoveDownBtn">
+                 <property name="text">
+                  <string>Move Down</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="AddStepBtn">
+                 <property name="text">
+                  <string>Add Step</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="DeleteBtn">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
         <widget class="QSplitter" name="splitter">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -35,125 +92,123 @@
         </widget>
        </widget>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="foo_0_0">
-        <item>
-         <widget class="QPushButton" name="MoveUpBtn">
-          <property name="text">
-           <string>Move Up</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="MoveDownBtn">
-          <property name="text">
-           <string>Move Down</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="DeleteBtn">
-          <property name="text">
-           <string>Delete</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="foo_1">
-     <property name="title">
-      <string>Steps</string>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="rightMargin">
+      <number>10</number>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_16">
-      <item>
-       <widget class="QGroupBox" name="foo_1_0">
-        <property name="title">
-         <string>Operations</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QTabWidget" name="ActionTab">
-           <property name="currentIndex">
-            <number>1</number>
-           </property>
-           <widget class="QWidget" name="tab">
-            <attribute name="title">
-             <string>Tab 1</string>
-            </attribute>
-           </widget>
-           <widget class="QWidget" name="tab_2">
-            <attribute name="title">
-             <string>Tab 2</string>
-            </attribute>
-           </widget>
+     <item>
+      <widget class="QGroupBox" name="foo_1_0">
+       <property name="title">
+        <string>Operations</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QTabWidget" name="ActionTab">
+          <property name="currentIndex">
+           <number>1</number>
+          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Tab 1</string>
+           </attribute>
           </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="ActionAddBtn">
-           <property name="text">
-            <string>Add to Step</string>
-           </property>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Tab 2</string>
+           </attribute>
           </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="foo_1_1">
-        <property name="title">
-         <string>End Condition</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_15">
-         <item>
-          <widget class="QTabWidget" name="EndConditionTab">
-           <property name="currentIndex">
-            <number>1</number>
-           </property>
-           <widget class="QWidget" name="tab_3">
-            <attribute name="title">
-             <string>Tab 1</string>
-            </attribute>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="ActionAddBtn">
+            <property name="text">
+             <string>Add to Step</string>
+            </property>
            </widget>
-           <widget class="QWidget" name="tab_4">
-            <attribute name="title">
-             <string>Tab 2</string>
-            </attribute>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ActionSetBtn">
+            <property name="text">
+             <string>Set</string>
+            </property>
            </widget>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="EndConditionAddBtn">
-           <property name="text">
-            <string>Add to Step</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="StepNameLineEdit">
-        <property name="inputMask">
-         <string/>
-        </property>
-        <property name="placeholderText">
-         <string>Step Name</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="AddStepBtn">
-        <property name="text">
-         <string>Add Step</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ActionDeleteBtn">
+            <property name="text">
+             <string>Delete</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="foo_1_1">
+          <property name="title">
+           <string>End Condition</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QTabWidget" name="EndConditionTab">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
+             <widget class="QWidget" name="tab_3">
+              <attribute name="title">
+               <string>Tab 1</string>
+              </attribute>
+             </widget>
+             <widget class="QWidget" name="tab_4">
+              <attribute name="title">
+               <string>Tab 2</string>
+              </attribute>
+             </widget>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="EndConditionAddBtn">
+               <property name="text">
+                <string>Add to Step</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="EndConditionSetBtn">
+               <property name="text">
+                <string>Set</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="EndConditionDeleteBtn">
+               <property name="text">
+                <string>Delete</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QGroupBox" name="foo_2">
@@ -171,23 +226,16 @@
        <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
       <item>
-       <widget class="QPushButton" name="PauseBtn">
+       <widget class="QPushButton" name="OpenMacroBtn">
         <property name="text">
-         <string>Pause</string>
+         <string>Open Macro</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="ResumeBtn">
+       <widget class="QPushButton" name="SaveMacroBtn">
         <property name="text">
-         <string>Resume</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="ForceStopBtn">
-        <property name="text">
-         <string>Force Stop</string>
+         <string>Save Macro</string>
         </property>
        </widget>
       </item>
@@ -195,6 +243,13 @@
        <widget class="QPushButton" name="RunMacroBtn">
         <property name="text">
          <string>Run Macro</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="ForceStopBtn">
+        <property name="text">
+         <string>Stop Macro</string>
         </property>
        </widget>
       </item>

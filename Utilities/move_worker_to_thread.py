@@ -30,6 +30,7 @@ class Worker(QObject,metaclass=MetaQObjectABC):
 
 def move_worker_to_thread(worker: Worker, thread: QThread):
     worker.moveToThread(thread)
+    print("Go?")
     thread.started.connect(worker.execute_run)
     worker.finished.connect(thread.quit)
     worker.finished.connect(worker.deleteLater)

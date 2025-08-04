@@ -1,6 +1,6 @@
 import time, os
 from itertools import chain
-from PyQt6.QtCore import QObject, QTimer, QThread
+from PyQt6.QtCore import QTimer, QThread
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
 from Backend.Interfaces.interface_jrk import JRKInterface
@@ -8,20 +8,7 @@ from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
 from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
-from Utilities.move_worker_to_thread import Worker, move_worker_to_thread
-
-class DataSaveWorker(Worker):
-    def stop(self):
-        pass
-
-    def __init__(self, datasets):
-        super().__init__()
-        self.datasets = datasets
-
-    def run(self):
-        for dataset in self.datasets:
-            dataset.save_data()
-        DataLoggerScheduler.__is_saving = False
+from typing import Callable
 
 class DataLoggerScheduler:
     __file_name: str = ""
@@ -65,6 +52,8 @@ class DataLoggerScheduler:
     __data_save_thread = QThread()
     __loop_timer : QTimer = QTimer()
 
+    __data_save_end_operations : list[Callable[[], None]] = []
+
     lb = 0
     ub = 1
 
@@ -72,33 +61,11 @@ class DataLoggerScheduler:
     def init():
         DataLoggerScheduler.__loop_timer.timeout.connect(DataLoggerScheduler.update_data)
         DataLoggerScheduler.__loop_timer.start(DataLoggerScheduler.sampling_time)
+        DataLoggerScheduler.__data_save_thread.run = DataLoggerScheduler.__write_data
 
     @staticmethod
     def save_data():
-        DataLoggerScheduler.__is_saving = True
-        fields = [
-            "feedback_position",
-            "target_position",
-            "feedback_force",
-            "target_force",
-            "duty_cycle",
-            "p_data",
-            "i_data",
-            "d_data",
-            "ilim_data",
-            "olim_data",
-            "controller_modes",
-        ]
-
-        data_streams = list(chain.from_iterable(getattr(DataLoggerScheduler, field) for field in fields))
-        data_streams.append(DataLoggerScheduler.horizontal_position)
-
-        DataLoggerScheduler.__data_save_worker = DataSaveWorker(data_streams)
-
-        move_worker_to_thread(DataLoggerScheduler.__data_save_worker, DataLoggerScheduler.__data_save_thread)
-
         DataLoggerScheduler.__data_save_thread.start()
-        return DataLoggerScheduler.__data_save_worker
 
     @staticmethod
     def clear_data():
@@ -158,7 +125,7 @@ class DataLoggerScheduler:
                 )
 
         DataLoggerScheduler.horizontal_position.set_filename(
-            DataLoggerScheduler.__file_name + "_horizontal_position"
+            DataLoggerScheduler.__file_name + "/horizontal_position"
         )
 
     @staticmethod
@@ -226,3 +193,34 @@ class DataLoggerScheduler:
     @staticmethod
     def get_is_saving():
         return DataLoggerScheduler.__is_saving
+
+    @staticmethod
+    def __write_data():
+        DataLoggerScheduler.__is_saving = True
+        fields = [
+            "feedback_position",
+            "target_position",
+            "feedback_force",
+            "target_force",
+            "duty_cycle",
+            "p_data",
+            "i_data",
+            "d_data",
+            "ilim_data",
+            "olim_data",
+            "controller_modes",
+        ]
+
+        data_streams = list(chain.from_iterable(getattr(DataLoggerScheduler, field) for field in fields))
+        data_streams.append(DataLoggerScheduler.horizontal_position)
+
+        for timeseries in data_streams:
+            timeseries.save_data()
+
+        DataLoggerScheduler.__is_saving = False
+        for func in DataLoggerScheduler.__data_save_end_operations:
+            func()
+
+    @staticmethod
+    def add_save_end_callback(callback: Callable[[], None]):
+        DataLoggerScheduler.__data_save_end_operations.append(callback)

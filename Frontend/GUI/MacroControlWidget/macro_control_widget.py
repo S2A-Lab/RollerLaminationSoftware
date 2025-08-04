@@ -1,8 +1,12 @@
+import copy
+
 from PyQt6 import uic
 from PyQt6.QtCore import QStringListModel
-from PyQt6.QtWidgets import (QWidget, QPushButton, QTabWidget, QColumnView, QLineEdit,QListView)
+from PyQt6.QtWidgets import (QWidget, QPushButton, QTabWidget, QColumnView, QLineEdit, QListView, QFileDialog)
 
-from Backend.Schedulers.ActionExecute.macro_step import MacroStep
+from Backend.Schedulers.ActionExecute.macro_step import MacroStep, macro_steps_to_xml, macro_steps_from_xml
+from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
+from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
 from Frontend.GUI.MacroControlWidget.ActionMoveHorizontalWidget.action_move_horizontal_widget import \
     ActionMoveHorizontalWidget
 from Frontend.GUI.MacroControlWidget.ActionMoveVerticalWidget.action_move_vertical_widget import ActionMoveVerticalWidget
@@ -45,22 +49,31 @@ class MacroControlWidget(QWidget):
     StepView: QListView
     EndConditionView: QListView
     ActionView: QListView
-    DeleteBtn: QPushButton
+
     MoveDownBtn: QPushButton
     MoveUpBtn: QPushButton
 
     AddStepBtn: QPushButton
+    DeleteBtn: QPushButton
+
     ActionAddBtn: QPushButton
+    ActionDeleteBtn: QPushButton
+    ActionSetBtn: QPushButton
     ActionTab: QTabWidget
 
     EndConditionAddBtn: QPushButton
+    EndConditionDeleteBtn: QPushButton
+    EndConditionSetBtn: QPushButton
+    EndTimeAddBtn: QPushButton
     EndConditionTab: QTabWidget
 
     ForceStopBtn: QPushButton
-    PauseBtn: QPushButton
-    ResumeBtn: QPushButton
+    # PauseBtn: QPushButton
+    # ResumeBtn: QPushButton
     RunMacroBtn: QPushButton
     SaveDataBtn: QPushButton
+    OpenMacroBtn: QPushButton
+    SaveMacroBtn: QPushButton
 
     StepNameLineEdit: QLineEdit
 
@@ -92,8 +105,23 @@ class MacroControlWidget(QWidget):
         self.ActionView.setModel(self.__action_model)
 
         self.AddStepBtn.clicked.connect(self.__add_step_btn)
+        self.DeleteBtn.clicked.connect(self.__step_delete_btn_clicked)
+        self.MoveUpBtn.clicked.connect(self.__move_up_btn_clicked)
+        self.MoveDownBtn.clicked.connect(self.__move_down_btn_clicked)
+
+        self.RunMacroBtn.clicked.connect(self.__run_macro_btn_clicked)
+        self.SaveDataBtn.clicked.connect(self.__save_data_btn_clicked)
+        self.ForceStopBtn.clicked.connect(self.__stop_macro_btn_clicked)
+        self.OpenMacroBtn.clicked.connect(self.__open_macro_btn_clicked)
+        self.SaveMacroBtn.clicked.connect(self.__save_macro_btn_clicked)
+
         self.ActionAddBtn.clicked.connect(self.__add_action_btn)
+        self.ActionDeleteBtn.clicked.connect(self.__action_delete_btn_clicked)
+        self.ActionSetBtn.clicked.connect(self.__action_set_btn_clicked)
+
         self.EndConditionAddBtn.clicked.connect(self.__add_end_condition_btn)
+        self.EndConditionDeleteBtn.clicked.connect(self.__end_condition_delete_btn_clicked)
+        self.EndConditionSetBtn.clicked.connect(self.__end_condition_set_btn_clicked)
 
         self.StepView.clicked.connect(self.__step_view_clicked)
         self.ActionView.clicked.connect(self.__action_view_clicked)
@@ -119,6 +147,8 @@ class MacroControlWidget(QWidget):
         for end_condition_widget in self.__end_condition_widgets:
             self.EndConditionTab.addTab(end_condition_widget,end_condition_widget.__class__.__name__.replace('EndCondition',''))
 
+        DataLoggerScheduler.add_save_end_callback(self.__save_end)
+
     def __add_step_btn(self):
         step_index = max(self.StepView.currentIndex().row(), -1) +1
         step = MacroStep()
@@ -128,7 +158,7 @@ class MacroControlWidget(QWidget):
         self.__refresh_ui()
 
     def __add_end_condition_btn(self):
-        end_condition = self.__end_condition_widgets[self.EndConditionTab.currentIndex()].condition
+        end_condition = copy.deepcopy(self.__end_condition_widgets[self.EndConditionTab.currentIndex()].condition)
         if len(self.__step_strings)<=0:
             self.__add_step_btn()
         self.__step_sequence[self.__current_index[0]].end_conditions.append(end_condition)
@@ -136,7 +166,7 @@ class MacroControlWidget(QWidget):
         self.__refresh_ui()
 
     def __add_action_btn(self):
-        action = self.__action_widgets[self.ActionTab.currentIndex()].action
+        action = copy.deepcopy(self.__action_widgets[self.ActionTab.currentIndex()].action)
         if len(self.__step_strings)<=0:
             self.__add_step_btn()
         self.__step_sequence[self.__current_index[0]].actions.append(action)
@@ -144,7 +174,6 @@ class MacroControlWidget(QWidget):
         self.__refresh_ui()
 
     def __step_view_clicked(self):
-        print(self.StepView.currentIndex().row())
         self.__current_index[0] = self.StepView.currentIndex().row()
         if len(self.__step_sequence) > 0:
             self.__current_index[1] = len(self.__step_sequence[self.__current_index[0]].actions) - 1
@@ -173,7 +202,7 @@ class MacroControlWidget(QWidget):
             self.__step_strings.append(step.name)
         self.__action_strings = []
         self.__end_condition_strings = []
-        if self.__current_index[0] < len(self.__step_strings):
+        if len(self.__step_strings) > self.__current_index[0] >= 0:
             for action in self.__step_sequence[self.__current_index[0]].actions:
                 self.__action_strings.append(action.__class__.__name__.replace('Action', ''))
             for end_condition in self.__step_sequence[self.__current_index[0]].end_conditions:
@@ -190,3 +219,81 @@ class MacroControlWidget(QWidget):
         self.StepView.setCurrentIndex(step_index)
         self.ActionView.setCurrentIndex(action_index)
         self.EndConditionView.setCurrentIndex(end_condition_index)
+
+    def __step_delete_btn_clicked(self):
+        if len(self.__step_sequence) > 0:
+            self.__step_sequence.pop(self.__current_index[0])
+            self.__current_index[0] -= 1
+            if self.__current_index[0] > 0:
+                self.__current_index[1] = len(self.__step_sequence[self.__current_index[0]].actions) - 1
+                self.__current_index[2] = len(self.__step_sequence[self.__current_index[0]].end_conditions) - 1
+            self.__refresh_ui()
+
+    def __action_delete_btn_clicked(self):
+        if len(self.__step_sequence) > 0 and len(self.__step_sequence[self.__current_index[0]].actions) > self.__current_index[1] >= 0:
+            self.__step_sequence[self.__current_index[0]].actions.pop(self.__current_index[1])
+            self.__current_index[1] -= 1
+        self.__refresh_ui()
+
+    def __end_condition_delete_btn_clicked(self):
+        if len(self.__step_sequence) > 0 and len(self.__step_sequence[self.__current_index[0]].end_conditions) > self.__current_index[2] >= 0:
+            self.__step_sequence[self.__current_index[0]].end_conditions.pop(self.__current_index[2])
+            self.__current_index[2] -= 1
+        self.__refresh_ui()
+
+    def __action_set_btn_clicked(self):
+        action = copy.deepcopy(self.__action_widgets[self.ActionTab.currentIndex()].action)
+        if len(self.__step_sequence) > 0 and len(self.__step_sequence[self.__current_index[0]].actions) > self.__current_index[1] >= 0:
+            self.__step_sequence[self.__current_index[0]].actions[self.__current_index[1]] = action
+        else:
+            self.__add_action_btn()
+        self.__refresh_ui()
+
+    def __end_condition_set_btn_clicked(self):
+        condition = copy.deepcopy(self.__end_condition_widgets[self.EndConditionTab.currentIndex()].condition)
+        if len(self.__step_sequence) > 0 and len(self.__step_sequence[self.__current_index[0]].end_conditions) > self.__current_index[2] >= 0:
+            self.__step_sequence[self.__current_index[0]].end_conditions[self.__current_index[2]] = condition
+        else:
+            self.__add_end_condition_btn()
+        self.__refresh_ui()
+
+    def __move_up_btn_clicked(self):
+        if len(self.__step_sequence) > 0 and self.__current_index[0] > 0:
+            self.__step_sequence[self.__current_index[0]], self.__step_sequence[self.__current_index[0]-1] = (
+                self.__step_sequence[self.__current_index[0]-1], self.__step_sequence[self.__current_index[0]])
+            self.__current_index[0] -= 1
+            self.__refresh_ui()
+    def __move_down_btn_clicked(self):
+        if len(self.__step_sequence) > 0 and self.__current_index[0] < len(self.__step_sequence) - 1:
+            self.__step_sequence[self.__current_index[0]], self.__step_sequence[self.__current_index[0]+1] = (
+                self.__step_sequence[self.__current_index[0]+1], self.__step_sequence[self.__current_index[0]])
+            self.__current_index[0] += 1
+            self.__refresh_ui()
+
+    def __run_macro_btn_clicked(self):
+        ActionExecuteScheduler.run_step_sequence(self.__step_sequence)
+
+    @staticmethod
+    def __stop_macro_btn_clicked():
+        ActionExecuteScheduler.stop()
+
+    def __save_data_btn_clicked(self):
+        filename = QFileDialog.getSaveFileName()
+        if len(filename[0]) > 0:
+            DataLoggerScheduler.set_file_name(filename[0])
+            self.SaveDataBtn.setEnabled(False)
+            DataLoggerScheduler.save_data()
+
+    def __save_end(self):
+        self.SaveDataBtn.setEnabled(True)
+
+    def __save_macro_btn_clicked(self):
+        filename = QFileDialog.getSaveFileName()
+        if len(filename[0]) > 0:
+            macro_steps_to_xml(self.__step_sequence,filename[0])
+
+    def __open_macro_btn_clicked(self):
+        filename = QFileDialog.getOpenFileName()
+        if len(filename[0]) > 0:
+            self.__step_sequence = macro_steps_from_xml(filename[0])
+            self.__refresh_ui()
