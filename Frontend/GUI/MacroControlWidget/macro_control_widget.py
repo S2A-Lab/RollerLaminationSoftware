@@ -222,8 +222,10 @@ class MacroControlWidget(QWidget):
 
     def __step_delete_btn_clicked(self):
         if len(self.__step_sequence) > 0:
+            self.__current_index[0] = max(self.__current_index[0],0)
             self.__step_sequence.pop(self.__current_index[0])
             self.__current_index[0] -= 1
+            self.__current_index[0] = max(self.__current_index[0], 0)
             if self.__current_index[0] > 0:
                 self.__current_index[1] = len(self.__step_sequence[self.__current_index[0]].actions) - 1
                 self.__current_index[2] = len(self.__step_sequence[self.__current_index[0]].end_conditions) - 1
