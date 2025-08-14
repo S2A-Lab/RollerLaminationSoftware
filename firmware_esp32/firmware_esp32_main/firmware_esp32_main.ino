@@ -71,34 +71,28 @@ void loop() {
     }
   } else {
     if (Serial.available()) {
-      receivedString = Serial.readStringUntil('\n');   // Read input until newline
-      receivedString.trim();  // Remove any whitespace or newline characters
-
-      if (receivedString.equalsIgnoreCase("f")) {
-        // Special case for command "f"
+      String cmd = Serial.readStringUntil('\n');
+      cmd.trim();
+      if (cmd.startsWith("sp")) { // Set max speed
+        long spd = cmd.substring(2).toInt();
+        stepper.setMaxSpeed(spd);
+        Serial.println(spd);
+      }
+      else if (cmd.startsWith("ac")) { // Set max acceleration
+        long acc = cmd.substring(2).toInt();
+        stepper.setAcceleration(acc);
+        Serial.println(acc);
+      }
+      else if (cmd.startsWith("tp")) { // Move to target position
+        long pos = cmd.substring(2).toInt();
+        pos = constrain(pos, STEP_MIN_POSITION, STEP_MAX_POSITION);
+        stepper.moveTo(pos);
+        Serial.println(pos);
+      }
+      else if (cmd.equalsIgnoreCase("fb")) { // Feedback: send current position
         Serial.println(stepper.currentPosition());
-        // Handle the 'f' command here...
-      } else if (receivedString.length() > 0 && receivedString.toInt() != 0 || receivedString == "0") {
-        // Check if the input is a valid integer
-        target_speed_horizontal_stage = receivedString.toInt();
       }
     }
-    int16_t x_fb = 0;
-    int16_t y_fb = 0;
-    int16_t z_fb = stepper.currentPosition();
-
-    stepper.setSpeed(target_speed_horizontal_stage);
-    if (stepper.currentPosition() > STEP_MAX_POSITION && target_speed_horizontal_stage > 0) {
-        stepper.setSpeed(0);
-    } else if (stepper.currentPosition() < STEP_MIN_POSITION && target_speed_horizontal_stage < 0) {
-        stepper.setSpeed(0);
-    }
   }
-  stepper.runSpeed();  // Non-blocking stepper control
-}
-
-// Reconstruct 16-bit value from received chunks
-int16_t reconstruct_16bit_value(uint8_t chunk1, uint8_t chunk2, uint8_t remaining_bits) {
-    int32_t data = (remaining_bits << 14) | (chunk2 << 7) | chunk1;
-    return int16_t(data);
+  stepper.run();  // Non-blocking stepper control
 }
