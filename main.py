@@ -1,9 +1,7 @@
-from PyQt6.QtCore import QThread
 from PyQt6.QtWidgets import QApplication, QStyleFactory
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
 from Backend.Interfaces.interface_jrk import JRKInterface
-from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
 from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
@@ -21,7 +19,7 @@ if __name__ == '__main__':
     HorizontalStageInterface.init()
     JRKInterface.init()
 
-
+    # We dont need phidget interface to init here. UI will initialize it.
     # PhidgetInterface.connect()
 
     DataLoggerScheduler.init()
