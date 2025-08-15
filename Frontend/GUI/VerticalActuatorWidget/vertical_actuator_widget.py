@@ -1,10 +1,10 @@
 from PyQt6 import uic
 from PyQt6.QtWidgets import (
     QWidget, QPushButton, QComboBox, QLabel, QSpinBox,
-    QDoubleSpinBox, QLCDNumber
+    QDoubleSpinBox, QLCDNumber, QMessageBox
 )
 from PyQt6.QtCore import QThread, pyqtSignal
-
+import copy
 from Backend.Interfaces.interface_jrk import JRKInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.macro_step import MacroStep
@@ -40,8 +40,9 @@ class VerticalActuatorWidget(QWidget):
 
     axis: VerticalAxis
 
-    __last_device_hash: int
+    __last_device_hash: tuple = ()
     __thread: QThread
+    __channels = ["",""]
     __target_forces = [0.0, 0.0]
     __target_positions = [0.0, 0.0]
 
@@ -64,6 +65,7 @@ class VerticalActuatorWidget(QWidget):
         self.__last_device_hash = 0
         self.TargetForceSpinBox.valueChanged.connect(self.__target_force_changed)
         self.StartForceBtn.clicked.connect(self.__start_force_control_btn_pressed)
+        self.DeviceSelectionBtn.currentIndexChanged.connect(self.__device_selection_btn_changed)
 
     def __pid_set_btn_pressed(self):
         macro_step = MacroStep()
@@ -100,8 +102,16 @@ class VerticalActuatorWidget(QWidget):
                 JRKInterface.get_position(VerticalAxis(self.axis.value)) - self.StepSizeSpinBox.value())
 
     def __set_device_btn_pressed(self):
-        JRKInterface.channels[self.axis.value] = self.DeviceSelectionBtn.itemText(self.DeviceSelectionBtn.currentIndex())
-        JRKInterface.connect()
+        if self.__channels[0] != self.__channels[1] and self.__channels[0] != "" and self.__channels[1]!="":
+            JRKInterface.channels = copy.deepcopy(self.__channels)
+            JRKInterface.connect()
+        else:
+            msg_box_name = QMessageBox()
+            msg_box_name.setText("Please check your connection! The JRK serial number should not be the same.")
+            msg_box_name.exec()
+
+    def __device_selection_btn_changed(self):
+        VerticalActuatorWidget.__channels[self.axis.value] = self.DeviceSelectionBtn.itemText(self.DeviceSelectionBtn.currentIndex())
 
     def __target_force_changed(self):
         VerticalActuatorWidget.__target_forces[self.axis.value] = self.TargetForceSpinBox.value()
@@ -128,11 +138,11 @@ class VerticalActuatorWidget(QWidget):
     def __run(self):
         while True:
             # Refreshing device list
-            if hash(tuple(JRKInterface.get_devices_list())) != self.__last_device_hash:
+            if tuple(JRKInterface.get_devices_list()) != self.__last_device_hash:
                 self.DeviceSelectionBtn.clear()
                 for serialcode in JRKInterface.get_devices_list():
                     self.DeviceSelectionBtn.addItem(serialcode)
-                self.__last_device_hash = hash(tuple(JRKInterface.get_devices_list()))
+                self.__last_device_hash = tuple(JRKInterface.get_devices_list())
 
             if not JRKInterface.is_connected():
                 self.MoveUpBtn.setEnabled(False)

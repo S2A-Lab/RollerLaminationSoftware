@@ -21,7 +21,7 @@ AccelStepper stepper(AccelStepper::DRIVER, STEP, DIR);  // Use DRIVER mode for s
 int target_speed_horizontal_stage = 0;
 int target_position_vertical_left_actuator = 0;
 int target_position_vertical_right_actuator = 0;
-uint8_t received_data[10];  // Array to store received command bytes
+char buf[16];
 bool homed = false;
 int home_state = 0;
 bool initialized = false;
@@ -31,7 +31,7 @@ bool initialized = false;
 ///////////////////////////////////
 #define MAX_SPEED 8000
 #define STEP_MIN_POSITION 0
-#define STEP_MAX_POSITION 80000
+#define STEP_MAX_POSITION 110000
 
 void setup() {
     // Initialize USB serial for debugging
@@ -76,21 +76,19 @@ void loop() {
       if (cmd.startsWith("sp")) { // Set max speed
         long spd = cmd.substring(2).toInt();
         stepper.setMaxSpeed(spd);
-        Serial.println(spd);
       }
       else if (cmd.startsWith("ac")) { // Set max acceleration
         long acc = cmd.substring(2).toInt();
         stepper.setAcceleration(acc);
-        Serial.println(acc);
       }
       else if (cmd.startsWith("tp")) { // Move to target position
         long pos = cmd.substring(2).toInt();
         pos = constrain(pos, STEP_MIN_POSITION, STEP_MAX_POSITION);
         stepper.moveTo(pos);
-        Serial.println(pos);
       }
       else if (cmd.equalsIgnoreCase("fb")) { // Feedback: send current position
-        Serial.println(stepper.currentPosition());
+        sprintf(buf, "%06ld", stepper.currentPosition()); // 6 digits, pad with zeros
+        Serial.println(buf);
       }
     }
   }

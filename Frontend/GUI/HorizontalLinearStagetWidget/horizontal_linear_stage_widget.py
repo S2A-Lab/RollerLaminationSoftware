@@ -31,36 +31,45 @@ class HorizontalLinearStageWidget(QWidget):
     foo_label_4: QLabel
 
     __thread : QThread
-    __ports_name_hash : int
+    __ports_name_hash : tuple
 
 
     def __init__(self):
         super(HorizontalLinearStageWidget, self).__init__() # Call the inherited classes __init__ method
         uic.loadUi('Frontend/GUI/HorizontalLinearStagetWidget/horizontallinearstagewidget.ui', self) # Load the .ui file
         self.__thread = QThread()
-        self.__ports_name_hash = 0
+        self.__thread.run = self.__run
+        self.__ports_name_hash = ()
         self.DeviceSetBtn.clicked.connect(self.__connect_btn_pressed)
+        self.YLeftMoveBtn.clicked.connect(self.__left_btn_pressed)
+        self.YRightMoveBtn.clicked.connect(self.__right_btn_pressed)
+        self.YStopBtn.clicked.connect(self.__stop_btn_pressed)
         self.YLeftMoveBtn.setEnabled(False)
         self.YRightMoveBtn.setEnabled(False)
         self.YStopBtn.setEnabled(False)
+        self.__thread.start()
 
     def __run(self):
         while True:
-            ports = get_ports()
-            descriptions = [port.description() for port in ports]
-            if hash(descriptions)!=self.__ports_name_hash:
-                # Update combobox
-                self.DeviceComboBox.clear()
-                self.DeviceComboBox.addItems(descriptions)
-            self.__ports_name_hash = hash(descriptions)
-            if HorizontalStageInterface.get_connected():
-                self.YLeftMoveBtn.setEnabled(True)
-                self.YRightMoveBtn.setEnabled(True)
-                self.YStopBtn.setEnabled(True)
-            else:
-                self.YLeftMoveBtn.setEnabled(False)
-                self.YRightMoveBtn.setEnabled(False)
-                self.YStopBtn.setEnabled(False)
+            try:
+                ports = get_ports()
+                descriptions = tuple(port.description() for port in ports)
+                if descriptions!=self.__ports_name_hash:
+                    # Update combobox
+                    self.DeviceComboBox.clear()
+                    self.DeviceComboBox.addItems(descriptions)
+                self.__ports_name_hash = descriptions
+
+                if HorizontalStageInterface.get_connected():
+                    self.YLeftMoveBtn.setEnabled(True)
+                    self.YRightMoveBtn.setEnabled(True)
+                    self.YStopBtn.setEnabled(True)
+                else:
+                    self.YLeftMoveBtn.setEnabled(False)
+                    self.YRightMoveBtn.setEnabled(False)
+                    self.YStopBtn.setEnabled(False)
+            except Exception as e:
+                print(e)
             QThread.msleep(200)
 
     def __connect_btn_pressed(self):
@@ -68,7 +77,15 @@ class HorizontalLinearStageWidget(QWidget):
         if self.DeviceComboBox.currentIndex() < 0:
             print("Device not set")
             return
-        HorizontalStageInterface.connect(get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
+        try:
+            if not HorizontalStageInterface.get_connected():
+                HorizontalStageInterface.connect(get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
+                self.DeviceSetBtn.setText("Disconnect")
+            else:
+                HorizontalStageInterface.disconnect()
+                self.DeviceSetBtn.setText("Connect")
+        except Exception as e:
+            print(e)
 
     def __left_btn_pressed(self):
         step = MacroStep()

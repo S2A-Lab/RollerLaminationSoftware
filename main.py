@@ -1,7 +1,9 @@
-from argparse import Action
-
+from PyQt5.QtCore import QThread
 from PyQt6.QtWidgets import QApplication, QStyleFactory
 
+from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
+from Backend.Interfaces.interface_jrk import JRKInterface
+from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
 from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
@@ -15,8 +17,14 @@ import sys
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ActionExecuteScheduler.init()
+    HorizontalStageInterface.init()
+    JRKInterface.init()
+    PhidgetInterface.connect()
+
     DataLoggerScheduler.init()
+    ActionExecuteScheduler.init()
+
+    # DataLoggerScheduler.start_recording()
 
     horizontal_widget = HorizontalLinearStageWidget()
     vertical_widget0 = VerticalActuatorWidget(VerticalAxis.AXIS_0)

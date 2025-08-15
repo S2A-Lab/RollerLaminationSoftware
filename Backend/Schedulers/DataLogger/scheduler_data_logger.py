@@ -130,65 +130,68 @@ class DataLoggerScheduler:
 
     @staticmethod
     def update_data():
-        DataLoggerScheduler.__executing = ActionExecuteScheduler.get_sequence_executing()
-        if DataLoggerScheduler.auto_start_end_recording:
-            if DataLoggerScheduler.__executing and not DataLoggerScheduler.__prev_executing:
-                DataLoggerScheduler.start_recording()
-            elif not DataLoggerScheduler.__executing and DataLoggerScheduler.__prev_executing:
-                DataLoggerScheduler.stop_recording()
-        DataLoggerScheduler.__prev_executing = DataLoggerScheduler.__executing
+        try:
+            DataLoggerScheduler.__executing = ActionExecuteScheduler.get_sequence_executing()
+            if DataLoggerScheduler.auto_start_end_recording:
+                if DataLoggerScheduler.__executing and not DataLoggerScheduler.__prev_executing:
+                    DataLoggerScheduler.start_recording()
+                elif not DataLoggerScheduler.__executing and DataLoggerScheduler.__prev_executing:
+                    DataLoggerScheduler.stop_recording()
+            DataLoggerScheduler.__prev_executing = DataLoggerScheduler.__executing
 
-        if PhidgetInterface.get_connected() and HorizontalStageInterface.get_connected() and DataLoggerScheduler.__recording:
-            if not DataLoggerScheduler.__start_time_set:
-                DataLoggerScheduler.__start_time = int(round(time.time() * 1000))
-                DataLoggerScheduler.__start_time_set = True
+            if PhidgetInterface.get_connected() and HorizontalStageInterface.get_connected() and DataLoggerScheduler.__recording:
+                if not DataLoggerScheduler.__start_time_set:
+                    DataLoggerScheduler.__start_time = int(round(time.time() * 1000))
+                    DataLoggerScheduler.__start_time_set = True
 
-            current_time = int(round(time.time() * 1000))
+                current_time = int(round(time.time() * 1000))
 
-            timestamp = current_time - DataLoggerScheduler.__start_time
+                timestamp = current_time - DataLoggerScheduler.__start_time
 
-            # Fetch target and feedback data
-            target_forces = ActionExecuteScheduler.get_vertical_target_force()
-            feedback_forces = [
-                PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0),
-                PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_1)
-            ]
-            target_positions = ActionExecuteScheduler.get_vertical_target_position()
-            feedback_positions = [
-                JRKInterface.get_position(VerticalAxis.AXIS_0),
-                JRKInterface.get_position(VerticalAxis.AXIS_1)
-            ]
-            duty_cycles = ActionExecuteScheduler.get_vertical_duty_cycles()
+                # Fetch target and feedback data
+                target_forces = ActionExecuteScheduler.get_vertical_target_force()
+                feedback_forces = [
+                    PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_0),
+                    PhidgetInterface.get_calibrated_forces(VerticalAxis.AXIS_1)
+                ]
+                target_positions = ActionExecuteScheduler.get_vertical_target_position()
+                feedback_positions = [
+                    JRKInterface.get_position(VerticalAxis.AXIS_0),
+                    JRKInterface.get_position(VerticalAxis.AXIS_1)
+                ]
+                duty_cycles = ActionExecuteScheduler.get_vertical_duty_cycles()
 
-            # Update bounds
-            DataLoggerScheduler.lb = min(*feedback_forces, *target_positions)
-            DataLoggerScheduler.ub = max(*feedback_forces, *target_positions)
-            # Fetch control parameters
-            pid_params = ActionExecuteScheduler.get_pid_parameters()  # [pid_param0, pid_param1]
-            controller_modes = ActionExecuteScheduler.get_vertical_modes()  # [controller_mode0, controller_mode1]
+                # Update bounds
+                DataLoggerScheduler.lb = min(*feedback_forces, *target_positions)
+                DataLoggerScheduler.ub = max(*feedback_forces, *target_positions)
+                # Fetch control parameters
+                pid_params = ActionExecuteScheduler.get_pid_parameters()  # [pid_param0, pid_param1]
+                controller_modes = ActionExecuteScheduler.get_vertical_modes()  # [controller_mode0, controller_mode1]
 
-            # Log scalar data
-            for i in range(2):
-                DataLoggerScheduler.target_force[i].update_data(timestamp, target_forces[i])
-                DataLoggerScheduler.feedback_force[i].update_data(timestamp, feedback_forces[i])
-                DataLoggerScheduler.target_position[i].update_data(timestamp, target_positions[i])
-                DataLoggerScheduler.feedback_position[i].update_data(timestamp, feedback_positions[i])
-                DataLoggerScheduler.duty_cycle[i].update_data(timestamp, duty_cycles[i])
+                # Log scalar data
+                for i in range(2):
+                    DataLoggerScheduler.target_force[i].update_data(timestamp, target_forces[i])
+                    DataLoggerScheduler.feedback_force[i].update_data(timestamp, feedback_forces[i])
+                    DataLoggerScheduler.target_position[i].update_data(timestamp, target_positions[i])
+                    DataLoggerScheduler.feedback_position[i].update_data(timestamp, feedback_positions[i])
+                    DataLoggerScheduler.duty_cycle[i].update_data(timestamp, duty_cycles[i])
 
-            # Log PID data
-            for i, pid in enumerate(pid_params):
-                DataLoggerScheduler.p_data[i].update_data(timestamp, pid[0])
-                DataLoggerScheduler.i_data[i].update_data(timestamp, pid[1])
-                DataLoggerScheduler.d_data[i].update_data(timestamp, pid[2])
-                DataLoggerScheduler.ilim_data[i].update_data(timestamp, pid[3])
-                DataLoggerScheduler.olim_data[i].update_data(timestamp, pid[4])
+                # Log PID data
+                for i, pid in enumerate(pid_params):
+                    DataLoggerScheduler.p_data[i].update_data(timestamp, pid[0])
+                    DataLoggerScheduler.i_data[i].update_data(timestamp, pid[1])
+                    DataLoggerScheduler.d_data[i].update_data(timestamp, pid[2])
+                    DataLoggerScheduler.ilim_data[i].update_data(timestamp, pid[3])
+                    DataLoggerScheduler.olim_data[i].update_data(timestamp, pid[4])
 
-            # Log controller modes
-            for i, mode in enumerate(controller_modes):
-                DataLoggerScheduler.controller_modes[i].update_data(timestamp, mode)
+                # Log controller modes
+                for i, mode in enumerate(controller_modes):
+                    DataLoggerScheduler.controller_modes[i].update_data(timestamp, mode)
 
-            # Log horizontal position
-            DataLoggerScheduler.horizontal_position.update_data(timestamp, HorizontalStageInterface.get_position())
+                # Log horizontal position
+                DataLoggerScheduler.horizontal_position.update_data(timestamp, HorizontalStageInterface.get_position())
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def get_is_saving():

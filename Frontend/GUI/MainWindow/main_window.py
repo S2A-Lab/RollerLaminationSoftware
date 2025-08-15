@@ -75,7 +75,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__run_thread.start()
 
     def __update_plot_params(self):
-        pass
         self.z_force_canvas[0].set_maximum_plot_time(self.PlotRangeSpinBox.value())
         self.z_force_canvas[1].set_maximum_plot_time(self.PlotRangeSpinBox.value())
         self.z_position_canvas[0].set_maximum_plot_time(self.PlotRangeSpinBox.value())

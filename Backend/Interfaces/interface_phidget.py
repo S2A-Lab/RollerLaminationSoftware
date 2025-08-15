@@ -20,26 +20,30 @@ class PhidgetInterface:
             input_device = VoltageRatioInput()
             input_device.setDeviceSerialNumber(PhidgetInterface.serial_number)
             input_device.setChannel(ch)
+            input_device.openWaitForAttachment(1000)
             input_device.setDataInterval(PhidgetInterface._sampling_interval)
             input_device.setOnVoltageRatioChangeHandler(PhidgetInterface._make_update_handler(i))
-            input_device.openWaitForAttachment(1000)
             PhidgetInterface._inputs.append(input_device)
 
         PhidgetInterface._connected = True
+
     @staticmethod
     def disconnect():
         for input_device in PhidgetInterface._inputs:
             input_device.close()
         PhidgetInterface._inputs.clear()
         PhidgetInterface._connected = False
+
     @staticmethod
     def get_connected():
         return PhidgetInterface._connected
+
     @staticmethod
     def _make_update_handler(index):
         def handler(device, voltage_ratio):
             PhidgetInterface._voltages[index] = voltage_ratio
         return handler
+
     @staticmethod
     def set_coefficients(coeff: float, vertical_axis: VerticalAxis):
         """Set per-channel scaling coefficients"""
@@ -55,10 +59,12 @@ class PhidgetInterface:
     @staticmethod
     def get_raw_voltages(vertical_axis: VerticalAxis):
         return PhidgetInterface._voltages[vertical_axis.value]
+
     @staticmethod
     def get_forces(vertical_axis: VerticalAxis):
         """Returns un-tared force (raw voltage × coefficient)"""
         return PhidgetInterface._voltages[vertical_axis.value] * PhidgetInterface._coefficients[vertical_axis.value]
+
     @staticmethod
     def get_calibrated_forces(vertical_axis: VerticalAxis):
         """Returns tared force (raw voltage × coefficient − zero offset)"""

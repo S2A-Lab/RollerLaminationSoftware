@@ -54,7 +54,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="TargetSpinBox"/>
+      <widget class="QDoubleSpinBox" name="TargetSpinBox">
+       <property name="maximum">
+        <double>110000.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -68,7 +72,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="ThresholdSpinBox"/>
+      <widget class="QDoubleSpinBox" name="ThresholdSpinBox">
+       <property name="maximum">
+        <double>10000.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

@@ -21,10 +21,10 @@ class ActionMoveHorizontalWidget(QWidget):
         self.action.target_position = self.PositionSpinBox.value()
 
     def __speed_spinbox_change(self):
-        self.action.target_speed = self.SpeedSpinBox.value()
+        self.action.max_vel = self.SpeedSpinBox.value()
 
     def __accel_spinbox_change(self):
-        self.action.target_acceleration = self.AccelSpinBox.value()
+        self.action.max_accel = self.AccelSpinBox.value()
 
     def load_action(self, action: MacroStep.ActionMoveHorizontal):
         self.AccelSpinBox.setValue(action.max_accel)
