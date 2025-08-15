@@ -2,7 +2,7 @@ import subprocess
 import yaml
 import re
 
-from PyQt5.QtCore import QTimer, QThread
+from PyQt6.QtCore import QTimer, QThread
 
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 

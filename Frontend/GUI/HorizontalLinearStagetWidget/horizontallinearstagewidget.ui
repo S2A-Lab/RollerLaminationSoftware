@@ -63,6 +63,9 @@
        <item row="2" column="1">
         <widget class="QDoubleSpinBox" name="SpeedSpinBox">
          <property name="maximum">
+          <double>50000.000000000000000</double>
+         </property>
+         <property name="value">
           <double>10000.000000000000000</double>
          </property>
         </widget>
@@ -70,6 +73,9 @@
        <item row="3" column="1">
         <widget class="QDoubleSpinBox" name="AccelSpinBox">
          <property name="maximum">
+          <double>50000.000000000000000</double>
+         </property>
+         <property name="value">
           <double>10000.000000000000000</double>
          </property>
         </widget>
@@ -78,6 +84,9 @@
         <widget class="QDoubleSpinBox" name="PosStepSpinBox">
          <property name="maximum">
           <double>10000.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>1000.000000000000000</double>
          </property>
         </widget>
        </item>

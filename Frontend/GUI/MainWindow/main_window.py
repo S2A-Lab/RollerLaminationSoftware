@@ -9,6 +9,7 @@ from Backend.Schedulers.DataLogger.datastruct_timeseries import Timeseries
 from Backend.Schedulers.DataLogger.scheduler_data_logger import DataLoggerScheduler
 from Frontend.GUI.HorizontalLinearStagetWidget.horizontal_linear_stage_widget import HorizontalLinearStageWidget
 from Frontend.GUI.MacroControlWidget.macro_control_widget import MacroControlWidget
+from Frontend.GUI.PhidgetControlWidget.phidget_control_widget import PhidgetControlWidget
 from Frontend.GUI.PlotCanvas.plot_canvas import PlotCanvas
 from Frontend.GUI.VerticalActuatorWidget.vertical_actuator_widget import VerticalActuatorWidget
 
@@ -18,6 +19,7 @@ class MainWindow(QtWidgets.QMainWindow):
     HorizontalAxisControlBox:         QGroupBox
     VerticalAxis0ControlBox:          QGroupBox
     VerticalAxis1ControlBox:          QGroupBox
+    DataAreaGroup:                    QGroupBox
 
     XPositionDisp:                    QLCDNumber
 
@@ -42,10 +44,12 @@ class MainWindow(QtWidgets.QMainWindow):
     PlotRangeSpinBox: QSpinBox
     AutoSizeXCheckBox: QCheckBox
 
-    def __init__(self, vertical_widgets: (VerticalActuatorWidget, VerticalActuatorWidget), horizontal_widget: HorizontalLinearStageWidget, macro_widget: MacroControlWidget):
+    def __init__(self, phidget_widget: PhidgetControlWidget, vertical_widgets: (VerticalActuatorWidget, VerticalActuatorWidget), horizontal_widget: HorizontalLinearStageWidget, macro_widget: MacroControlWidget):
         super(MainWindow, self).__init__() # Call the inherited classes __init__ method
 
         uic.loadUi('Frontend/GUI/MainWindow/mainwindow.ui', self) # Load the .ui file
+
+        self.DataAreaGroup.layout().addWidget(phidget_widget)
 
         self.HorizontalAxisControlBox.layout().addWidget(horizontal_widget)
         self.VerticalAxis0ControlBox.layout().addWidget(vertical_widgets[0])

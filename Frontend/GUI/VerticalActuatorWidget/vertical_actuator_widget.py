@@ -62,7 +62,7 @@ class VerticalActuatorWidget(QWidget):
         self.__thread = QThread()
         self.__thread.run = self.__run
         self.__thread.start()
-        self.__last_device_hash = 0
+        self.__last_device_hash = tuple()
         self.TargetForceSpinBox.valueChanged.connect(self.__target_force_changed)
         self.StartForceBtn.clicked.connect(self.__start_force_control_btn_pressed)
         self.DeviceSelectionBtn.currentIndexChanged.connect(self.__device_selection_btn_changed)
@@ -147,9 +147,10 @@ class VerticalActuatorWidget(QWidget):
             if not JRKInterface.is_connected():
                 self.MoveUpBtn.setEnabled(False)
                 self.MoveDownBtn.setEnabled(False)
-
+                self.StartForceBtn.setEnabled(False)
             else:
                 self.MoveUpBtn.setEnabled(True)
                 self.MoveDownBtn.setEnabled(True)
+                self.StartForceBtn.setEnabled(True)
                 self.PositionLCD.display(JRKInterface.get_position(VerticalAxis(self.axis.value)))
             QThread.msleep(100)
