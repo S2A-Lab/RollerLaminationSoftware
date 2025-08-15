@@ -1,91 +1,140 @@
 import subprocess
 import yaml
 import re
-
-from PyQt6.QtCore import QTimer, QThread
-
+from PyQt6.QtCore import QThread
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
+
 
 def jrk2cmd(*args):
     return subprocess.check_output(['jrk2cmd'] + list(args))
 
-class JRKInterface:
-    channels = ["00425280", "00425253"]
 
-    __connected = False
+class JRKWorker(QThread):
+    def __init__(self, channels, parent=None):
+        super().__init__(parent)
+        self.channels = channels
+        self._connected = False
+        self._target_position = [0, 0]
+        self._pending_target = [False, False]
+        self._duty_cycle = [0, 0]
+        self._pending_duty = [False, False]
+        self._feedback = [0, 0]
+        self._devices = []
+        self._running = True
 
-    __thread = QThread()
-
-    __target_position = [0, 0]
-    __pending_send_target_position = [False, False]
-    __duty_cycle = [0, 0]
-    __pending_send_duty_cycle = [False, False]
-    __feedback_position = [0,0]
-    __devices = []
-
-    @staticmethod
-    def init():
-        JRKInterface.__thread.run = JRKInterface.__run
-        JRKInterface.__thread.start()
-
-    @staticmethod
-    def connect():
-        for idx, channel in enumerate(JRKInterface.channels):
-            if not channel in JRKInterface.get_devices_list():
-                print("Device not found.")
-                return
-        JRKInterface.__connected = True
-
-    @staticmethod
-    def __run():
+    def run(self):
         count = 0
-        while True:
+        while self._running:
             count += 1
+            # Update device list periodically
             if count > 20:
                 devices = str(yaml.safe_load(jrk2cmd('--list')))
-                JRKInterface.__devices = re.findall(r"\b\d{8}\b", devices)
+                self._devices = re.findall(r"\b\d{8}\b", devices)
                 count = 0
 
-            if JRKInterface.is_connected():
-                for i in range(2):
-                    status_x = yaml.safe_load(jrk2cmd('-d', JRKInterface.channels[i], '-s', '--full'))
-                    x = status_x['Scaled feedback']
-                    JRKInterface.__feedback_position[i] = x
+            if self._connected:
+                for i in range(len(self.channels)):
+                    status = yaml.safe_load(
+                        jrk2cmd('-d', self.channels[i], '-s', '--full')
+                    )
+                    self._feedback[i] = status['Scaled feedback']
 
-                    if JRKInterface.__pending_send_target_position[i]:
-                        jrk2cmd('-d', JRKInterface.channels[i], '--target',
-                                str(int(JRKInterface.__target_position[i])))
-                        JRKInterface.__pending_send_target_position[i] = False
-                    if JRKInterface.__pending_send_duty_cycle[i]:
-                        jrk2cmd('-d', JRKInterface.channels[i], '--force-duty-cycle-target',
-                                str(int(JRKInterface.__duty_cycle[i])))
-                        JRKInterface.__pending_send_duty_cycle[i] = False
-            QThread.msleep(1)
+                    if self._pending_target[i]:
+                        jrk2cmd('-d', self.channels[i], '--target',
+                                str(int(self._target_position[i])))
+                        self._pending_target[i] = False
 
+                    if self._pending_duty[i]:
+                        jrk2cmd('-d', self.channels[i], '--force-duty-cycle-target',
+                                str(int(self._duty_cycle[i])))
+                        self._pending_duty[i] = False
 
-    @staticmethod
-    def disconnect():
-        JRKInterface.__connected = False
+            QThread.msleep(1)  # yield for scheduler
 
-    @staticmethod
-    def get_devices_list():
+    def stop(self):
+        self._running = False
+        self.wait()
+
+    # API methods
+    def connect_devices(self):
+        for ch in self.channels:
+            if ch not in self.get_devices_list():
+                print("Device not found.")
+                return
+        self._connected = True
+
+    def disconnect_devices(self):
+        self._connected = False
+
+    def get_devices_list(self):
         devices = str(yaml.safe_load(jrk2cmd('--list')))
         return re.findall(r"\b\d{8}\b", devices)
 
+    def set_target_position(self, target: int, axis: VerticalAxis):
+        self._target_position[axis.value] = target
+        self._pending_target[axis.value] = True
+
+    def set_duty_cycle(self, target: int, axis: VerticalAxis):
+        self._duty_cycle[axis.value] = target
+        self._pending_duty[axis.value] = True
+
+    def get_position(self, axis: VerticalAxis) -> int:
+        return self._feedback[axis.value]
+
+    def is_connected(self):
+        return self._connected
+
+
+class JRKInterface:
+    channels = ["00425280", "00425253"]
+    _worker: JRKWorker | None = None
+
+    @staticmethod
+    def init():
+        if JRKInterface._worker is None:
+            JRKInterface._worker = JRKWorker(JRKInterface.channels)
+            JRKInterface._worker.start()
+
+    @staticmethod
+    def shutdown():
+        if JRKInterface._worker:
+            JRKInterface._worker.stop()
+            JRKInterface._worker = None
+
+    @staticmethod
+    def connect():
+        if JRKInterface._worker:
+            JRKInterface._worker.connect_devices()
+
+    @staticmethod
+    def disconnect():
+        if JRKInterface._worker:
+            JRKInterface._worker.disconnect_devices()
+
+    @staticmethod
+    def get_devices_list():
+        if JRKInterface._worker:
+            return JRKInterface._worker.get_devices_list()
+        return []
+
     @staticmethod
     def set_target_position(target: int, vertical_axis: VerticalAxis):
-        JRKInterface.__target_position[vertical_axis.value] = target
-        JRKInterface.__pending_send_target_position[vertical_axis.value] = True
+        if JRKInterface._worker:
+            JRKInterface._worker.set_target_position(target, vertical_axis)
 
     @staticmethod
     def set_duty_cycle(target: int, vertical_axis: VerticalAxis):
-        JRKInterface.__duty_cycle[vertical_axis.value] = target
-        JRKInterface.__pending_send_duty_cycle[vertical_axis.value] = True
+        if JRKInterface._worker:
+            JRKInterface._worker.set_duty_cycle(target, vertical_axis)
 
     @staticmethod
     def get_position(vertical_axis: VerticalAxis) -> int:
-        return JRKInterface.__feedback_position[vertical_axis.value]
+        if JRKInterface._worker:
+            return JRKInterface._worker.get_position(vertical_axis)
+        return 0
 
     @staticmethod
     def is_connected():
-        return JRKInterface.__connected
+        if JRKInterface._worker:
+            return JRKInterface._worker.is_connected()
+        return False
