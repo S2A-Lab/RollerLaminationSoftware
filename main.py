@@ -1,3 +1,7 @@
+import traceback
+
+from PyQt5.QtCore import QThread
+from PyQt6.QtCore import qInstallMessageHandler
 from PyQt6.QtWidgets import QApplication, QStyleFactory
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
@@ -11,21 +15,33 @@ from Frontend.GUI.PhidgetControlWidget.phidget_control_widget import PhidgetCont
 from Frontend.GUI.VerticalActuatorWidget.vertical_actuator_widget import VerticalActuatorWidget
 from Frontend.GUI.MacroControlWidget.macro_control_widget import MacroControlWidget
 from Frontend.GUI.HorizontalLinearStagetWidget.horizontal_linear_stage_widget import HorizontalLinearStageWidget
-
+import faulthandler
 import sys
 
+def error_handler(etype, value, tb):
+    error_msg = ''.join(traceback.format_exception(etype, value, tb))
+    print(error_msg)
+
+def qt_message_handler(mode, context, message):
+    sys.stderr.write(f"QtMsg[{mode}]: {message}\n")
+
+
 if __name__ == '__main__':
+    faulthandler.enable()
+    sys.excepthook = error_handler
     app = QApplication(sys.argv)
+    qInstallMessageHandler(qt_message_handler)
+
     HorizontalStageInterface.init()
+    QThread.msleep(100)
+    # HorizontalStageInterface.connect("COM9",115200)
     JRKInterface.init()
 
-    # We dont need phidget interface to init here. UI will initialize it.
+    # # We dont need phidget interface to init here. UI will initialize it.
     # PhidgetInterface.connect()
-
+    #
     DataLoggerScheduler.init()
     ActionExecuteScheduler.init()
-
-    # DataLoggerScheduler.start_recording()
 
     horizontal_widget = HorizontalLinearStageWidget()
     vertical_widget0 = VerticalActuatorWidget(VerticalAxis.AXIS_0)
@@ -34,9 +50,7 @@ if __name__ == '__main__':
 
     macro_widget = MacroControlWidget()
     window = MainWindow(phidget_widget,(vertical_widget0, vertical_widget1),horizontal_widget, macro_widget)
-    # with open("Backend/Interfaces/ui_interface/assets/icons/stylesheet.qss", "r") as stylesheet:
-    #     app.setStyleSheet(stylesheet.read())
-    # window = MainService()
+
     window.show()
     app.setStyle(QStyleFactory.create("Fusion"))
     sys.exit(app.exec())

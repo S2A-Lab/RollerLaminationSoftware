@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (
 )
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface, get_ports
+from Backend.Interfaces.interface_jrk import JRKInterface
+from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Schedulers.ActionExecute.macro_step import MacroStep
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
 
@@ -78,8 +80,8 @@ class HorizontalLinearStageWidget(QWidget):
             print("Device not set")
             return
         try:
-            if not HorizontalStageInterface.get_connected():
-                HorizontalStageInterface.connect(get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
+            if not JRKInterface.is_connected() or not HorizontalStageInterface.get_connected() or not PhidgetInterface.get_connected():
+                HorizontalStageInterface.connect(HorizontalStageInterface.get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
                 self.DeviceSetBtn.setText("Disconnect")
             else:
                 HorizontalStageInterface.disconnect()

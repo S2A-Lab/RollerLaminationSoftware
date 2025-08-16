@@ -31,4 +31,3 @@ class ActionMoveVerticalWidget(QWidget):
         self.AxisComboBox.setCurrentIndex(action.axis.value)
         self.ModeComboBox.setCurrentIndex(action.mode.value)
         self.TargetSpinBox.setValue(action.target)
-

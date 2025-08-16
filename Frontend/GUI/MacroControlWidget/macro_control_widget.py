@@ -196,29 +196,32 @@ class MacroControlWidget(QWidget):
         self.__end_condition_widgets[index].load_condition(self.__step_sequence[self.__current_index[0]].end_conditions[self.__current_index[2]])
 
     def __refresh_ui(self):
-        self.__step_strings = []
+        try:
+            self.__step_strings = []
 
-        for step in self.__step_sequence:
-            self.__step_strings.append(step.name)
-        self.__action_strings = []
-        self.__end_condition_strings = []
-        if len(self.__step_strings) > self.__current_index[0] >= 0:
-            for action in self.__step_sequence[self.__current_index[0]].actions:
-                self.__action_strings.append(action.__class__.__name__.replace('Action', ''))
-            for end_condition in self.__step_sequence[self.__current_index[0]].end_conditions:
-                self.__end_condition_strings.append(end_condition.__class__.__name__.replace('EndCondition', ''))
+            for step in self.__step_sequence:
+                self.__step_strings.append(step.name)
+            self.__action_strings = []
+            self.__end_condition_strings = []
+            if len(self.__step_strings) > self.__current_index[0] >= 0:
+                for action in self.__step_sequence[self.__current_index[0]].actions:
+                    self.__action_strings.append(action.__class__.__name__.replace('Action', ''))
+                for end_condition in self.__step_sequence[self.__current_index[0]].end_conditions:
+                    self.__end_condition_strings.append(end_condition.__class__.__name__.replace('EndCondition', ''))
 
-        self.__step_model.setStringList(self.__step_strings)
-        self.__action_model.setStringList(self.__action_strings)
-        self.__end_condition_model.setStringList(self.__end_condition_strings)
+            self.__step_model.setStringList(self.__step_strings)
+            self.__action_model.setStringList(self.__action_strings)
+            self.__end_condition_model.setStringList(self.__end_condition_strings)
 
-        step_index = self.__step_model.index(self.__current_index[0])
-        action_index = self.__action_model.index(self.__current_index[1])
-        end_condition_index = self.__end_condition_model.index(self.__current_index[2])
+            step_index = self.__step_model.index(self.__current_index[0])
+            action_index = self.__action_model.index(self.__current_index[1])
+            end_condition_index = self.__end_condition_model.index(self.__current_index[2])
 
-        self.StepView.setCurrentIndex(step_index)
-        self.ActionView.setCurrentIndex(action_index)
-        self.EndConditionView.setCurrentIndex(end_condition_index)
+            self.StepView.setCurrentIndex(step_index)
+            self.ActionView.setCurrentIndex(action_index)
+            self.EndConditionView.setCurrentIndex(end_condition_index)
+        except Exception as e:
+            print(e)
 
     def __step_delete_btn_clicked(self):
         if len(self.__step_sequence) > 0:

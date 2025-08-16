@@ -93,9 +93,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __run(self):
         while True:
-            self.z_force_canvas[0].update_data(DataLoggerScheduler.feedback_force[0], DataLoggerScheduler.target_force[0])
-            self.z_force_canvas[1].update_data(DataLoggerScheduler.feedback_force[1], DataLoggerScheduler.target_force[1])
-            self.z_position_canvas[0].update_data(DataLoggerScheduler.feedback_position[0], DataLoggerScheduler.target_position[0])
-            self.z_position_canvas[1].update_data(DataLoggerScheduler.feedback_position[1], DataLoggerScheduler.target_position[1])
-            self.XPositionDisp.display(HorizontalStageInterface.get_position())
+            try:
+                self.z_force_canvas[0].update_data(DataLoggerScheduler.feedback_force[0], DataLoggerScheduler.target_force[0])
+                self.z_force_canvas[1].update_data(DataLoggerScheduler.feedback_force[1], DataLoggerScheduler.target_force[1])
+                self.z_position_canvas[0].update_data(DataLoggerScheduler.feedback_position[0], DataLoggerScheduler.target_position[0])
+                self.z_position_canvas[1].update_data(DataLoggerScheduler.feedback_position[1], DataLoggerScheduler.target_position[1])
+                self.XPositionDisp.display(HorizontalStageInterface.get_position())
+            except Exception as e:
+                print(e)
             QThread.msleep(self.__interval)

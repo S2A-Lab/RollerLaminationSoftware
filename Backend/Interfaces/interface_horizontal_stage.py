@@ -27,8 +27,9 @@ class _Worker(QObject):
     @pyqtSlot(str, int)
     def startIO(self, port_name: str, baud: int):
         # Create the port **in this thread** and parent it to self
-        self._port = QSerialPort(self)
-        self._port.readyRead.connect(self._on_ready_read)
+        if self._port is None:
+            self._port = QSerialPort(self)  # created now, in worker thread
+            self._port.readyRead.connect(self._on_ready_read)
 
         self._port.setPortName(port_name)
         self._port.setBaudRate(baud)
@@ -37,6 +38,7 @@ class _Worker(QObject):
             self._running = True
             self._poll.start()  # start **after** open, in this thread
             self.connectedChanged.emit(True)
+            print("Port open")
         else:
             print("open failed, error:", self._port.error())
             self.connectedChanged.emit(False)

@@ -1,3 +1,4 @@
+from Phidget22.Phidget import Phidget
 from PyQt6 import uic
 from PyQt6.QtWidgets import (
     QWidget, QPushButton, QComboBox, QLabel, QSpinBox,
@@ -5,7 +6,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal
 import copy
+
+from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface
 from Backend.Interfaces.interface_jrk import JRKInterface
+from Backend.Interfaces.interface_phidget import PhidgetInterface
 from Backend.Interfaces.vertical_axis_base import VerticalAxis
 from Backend.Schedulers.ActionExecute.macro_step import MacroStep
 from Backend.Schedulers.ActionExecute.scheduler_action_execute import ActionExecuteScheduler
@@ -45,6 +49,7 @@ class VerticalActuatorWidget(QWidget):
     __channels = ["",""]
     __target_forces = [0.0, 0.0]
     __target_positions = [0.0, 0.0]
+    __pid_init_command = MacroStep()
 
     def __init__(self, axis: VerticalAxis):
         super(VerticalActuatorWidget, self).__init__() # Call the inherited classes __init__ method
@@ -66,6 +71,16 @@ class VerticalActuatorWidget(QWidget):
         self.TargetForceSpinBox.valueChanged.connect(self.__target_force_changed)
         self.StartForceBtn.clicked.connect(self.__start_force_control_btn_pressed)
         self.DeviceSelectionBtn.currentIndexChanged.connect(self.__device_selection_btn_changed)
+        self.__pid_set_btn_pressed()
+        self.__target_forces[self.axis.value] = self.TargetForceSpinBox.value()
+        self.__pid_init_command.actions.append(MacroStep.ActionChangeVerticalPIDParams(MacroStep.ActionChangeVerticalPIDParams.Axis(self.axis.value),
+                                                                  float(self.KpInput.value()),
+                                                                  float(self.KiInput.value()),
+                                                                  float(self.KdInput.value()),
+                                                                  float(self.ILimInput.value()),
+                                                                  float(self.OutLimInput.value())))
+        if len(self.__pid_init_command.actions) >= 2:
+            ActionExecuteScheduler.run_step_sequence([self.__pid_init_command])
 
     def __pid_set_btn_pressed(self):
         macro_step = MacroStep()
@@ -75,8 +90,12 @@ class VerticalActuatorWidget(QWidget):
                                                                   float(self.KdInput.value()),
                                                                   float(self.ILimInput.value()),
                                                                   float(self.OutLimInput.value()))
-        macro_step.actions.append(macro_step_action)
-        ActionExecuteScheduler.run_step_sequence([macro_step])
+        if not JRKInterface.is_connected() or not HorizontalStageInterface.get_connected() or not PhidgetInterface.get_connected():
+            self.__pid_init_command.actions.append(macro_step_action)
+            ActionExecuteScheduler.run_step_sequence([self.__pid_init_command])
+        else:
+            macro_step.actions.append(macro_step_action)
+            ActionExecuteScheduler.run_step_sequence([macro_step])
 
     def __move_up_btn_pressed(self):
         macro_step = MacroStep()
@@ -118,39 +137,47 @@ class VerticalActuatorWidget(QWidget):
         print(VerticalActuatorWidget.__target_forces)
 
     def __start_force_control_btn_pressed(self):
-        macro_step = MacroStep()
-        if ActionExecuteScheduler.get_vertical_modes()[self.axis.value] == MacroStep.ActionMoveVertical.Mode.FORCE:
-            macro_step_action0 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_0), MacroStep.ActionMoveVertical.Mode.POSITION,
-                                                              VerticalActuatorWidget.__target_positions[0])
-            macro_step_action1 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_1), MacroStep.ActionMoveVertical.Mode.POSITION,
-                                                              VerticalActuatorWidget.__target_positions[1])
-            self.StartForceBtn.setText("Start Force Control")
-        else:
-            macro_step_action0 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_0), MacroStep.ActionMoveVertical.Mode.FORCE,
-                                                             VerticalActuatorWidget.__target_forces[0])
-            macro_step_action1 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_1), MacroStep.ActionMoveVertical.Mode.FORCE,
-                                                             VerticalActuatorWidget.__target_forces[1])
-            self.StartForceBtn.setText("Stop Force Control")
-        macro_step.actions.append(macro_step_action0)
-        macro_step.actions.append(macro_step_action1)
-        ActionExecuteScheduler.run_step_sequence([macro_step])
+        try:
+            macro_step = MacroStep()
+            if ActionExecuteScheduler.get_vertical_modes()[self.axis.value] == MacroStep.ActionMoveVertical.Mode.FORCE:
+                macro_step_action0 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_0.value), MacroStep.ActionMoveVertical.Mode.POSITION,
+                                                                  VerticalActuatorWidget.__target_positions[0])
+                macro_step_action1 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_1.value), MacroStep.ActionMoveVertical.Mode.POSITION,
+                                                                  VerticalActuatorWidget.__target_positions[1])
+                self.StartForceBtn.setText("Start Force Control")
+            else:
+                VerticalActuatorWidget.__target_positions = [JRKInterface.get_position(VerticalAxis.AXIS_0),
+                                                             JRKInterface.get_position(VerticalAxis.AXIS_1)]
+                macro_step_action0 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_0.value), MacroStep.ActionMoveVertical.Mode.FORCE,
+                                                                 VerticalActuatorWidget.__target_forces[0])
+                macro_step_action1 = MacroStep.ActionMoveVertical(MacroStep.ActionMoveVertical.Axis(VerticalAxis.AXIS_1.value), MacroStep.ActionMoveVertical.Mode.FORCE,
+                                                                 VerticalActuatorWidget.__target_forces[1])
+                self.StartForceBtn.setText("Stop Force Control")
+            macro_step.actions.append(macro_step_action0)
+            macro_step.actions.append(macro_step_action1)
+            ActionExecuteScheduler.run_step_sequence([macro_step])
+        except Exception as e:
+            print(e)
 
     def __run(self):
         while True:
-            # Refreshing device list
-            if tuple(JRKInterface.get_devices_list()) != self.__last_device_hash:
-                self.DeviceSelectionBtn.clear()
-                for serialcode in JRKInterface.get_devices_list():
-                    self.DeviceSelectionBtn.addItem(serialcode)
-                self.__last_device_hash = tuple(JRKInterface.get_devices_list())
+            try:
+                # Refreshing device list
+                if tuple(JRKInterface.get_devices_list()) != self.__last_device_hash:
+                    self.DeviceSelectionBtn.clear()
+                    for serialcode in JRKInterface.get_devices_list():
+                        self.DeviceSelectionBtn.addItem(serialcode)
+                    self.__last_device_hash = tuple(JRKInterface.get_devices_list())
 
-            if not JRKInterface.is_connected():
-                self.MoveUpBtn.setEnabled(False)
-                self.MoveDownBtn.setEnabled(False)
-                self.StartForceBtn.setEnabled(False)
-            else:
-                self.MoveUpBtn.setEnabled(True)
-                self.MoveDownBtn.setEnabled(True)
-                self.StartForceBtn.setEnabled(True)
-                self.PositionLCD.display(JRKInterface.get_position(VerticalAxis(self.axis.value)))
+                if not JRKInterface.is_connected() or not HorizontalStageInterface.get_connected() or not PhidgetInterface.get_connected():
+                    self.MoveUpBtn.setEnabled(False)
+                    self.MoveDownBtn.setEnabled(False)
+                    self.StartForceBtn.setEnabled(False)
+                else:
+                    self.MoveUpBtn.setEnabled(True)
+                    self.MoveDownBtn.setEnabled(True)
+                    self.StartForceBtn.setEnabled(True)
+                    self.PositionLCD.display(JRKInterface.get_position(VerticalAxis(self.axis.value)))
+            except Exception as e:
+                print(e)
             QThread.msleep(100)
