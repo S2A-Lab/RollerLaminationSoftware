@@ -1,7 +1,6 @@
 import traceback
 
-from PyQt5.QtCore import QThread
-from PyQt6.QtCore import qInstallMessageHandler
+from PyQt6.QtCore import qInstallMessageHandler,QThread
 from PyQt6.QtWidgets import QApplication, QStyleFactory
 
 from Backend.Interfaces.interface_horizontal_stage import HorizontalStageInterface

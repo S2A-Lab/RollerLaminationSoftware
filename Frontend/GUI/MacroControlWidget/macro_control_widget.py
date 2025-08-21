@@ -276,10 +276,12 @@ class MacroControlWidget(QWidget):
             self.__refresh_ui()
 
     def __run_macro_btn_clicked(self):
+        DataLoggerScheduler.start_recording()
         ActionExecuteScheduler.run_step_sequence(self.__step_sequence)
 
     @staticmethod
     def __stop_macro_btn_clicked():
+        DataLoggerScheduler.stop_recording()
         ActionExecuteScheduler.stop()
 
     def __save_data_btn_clicked(self):
