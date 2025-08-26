@@ -28,6 +28,20 @@
      </property>
     </widget>
    </item>
+   <item>
+    <widget class="QPushButton" name="StartRecordBtn">
+     <property name="text">
+      <string>Start Recording</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="StopRecordBtn">
+     <property name="text">
+      <string>Stop Recording</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

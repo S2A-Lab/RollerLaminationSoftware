@@ -81,7 +81,7 @@ class HorizontalLinearStageWidget(QWidget):
             return
         try:
             if not JRKInterface.is_connected() or not HorizontalStageInterface.get_connected() or not PhidgetInterface.get_connected():
-                HorizontalStageInterface.connect(HorizontalStageInterface.get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
+                HorizontalStageInterface.connect(get_ports()[self.DeviceComboBox.currentIndex()].portName(), 115200)
                 self.DeviceSetBtn.setText("Disconnect")
             else:
                 HorizontalStageInterface.disconnect()

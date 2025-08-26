@@ -49,7 +49,7 @@ class JRKWorker(QThread):
                                 str(int(self._duty_cycle[i])))
                         self._pending_duty[i] = False
 
-            QThread.msleep(10)  # yield for scheduler
+            QThread.msleep(30)  # yield for scheduler
 
     def stop(self):
         self._running = False

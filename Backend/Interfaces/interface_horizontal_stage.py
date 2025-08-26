@@ -21,7 +21,7 @@ class _Worker(QObject):
         self._vmax = 10.0
         self._amax = 10.0
         self._poll = QTimer(self)
-        self._poll.setInterval(10)
+        self._poll.setInterval(30)
         self._poll.timeout.connect(self._tick)
 
     @pyqtSlot(str, int)

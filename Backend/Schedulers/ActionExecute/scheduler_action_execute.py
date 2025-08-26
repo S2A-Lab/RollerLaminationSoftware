@@ -146,6 +146,8 @@ class ActionExecuteScheduler:
                                     case MacroStep.EndConditionPosition.Axis.Y:
                                         condition_validation = abs(
                                             HorizontalStageInterface.get_position() - condition.target) < condition.threshold
+                                print(condition.axis)
+                                print(condition_validation)
                             step_end_validation &= condition_validation
                             if not condition_validation: break
                         if step_end_validation:

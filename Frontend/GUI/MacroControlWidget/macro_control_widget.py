@@ -276,6 +276,7 @@ class MacroControlWidget(QWidget):
             self.__refresh_ui()
 
     def __run_macro_btn_clicked(self):
+        DataLoggerScheduler.clear_data()
         DataLoggerScheduler.start_recording()
         ActionExecuteScheduler.run_step_sequence(self.__step_sequence)
 
@@ -293,6 +294,7 @@ class MacroControlWidget(QWidget):
 
     def __save_end(self):
         self.SaveDataBtn.setEnabled(True)
+
 
     def __save_macro_btn_clicked(self):
         filename = QFileDialog.getSaveFileName()

@@ -68,4 +68,4 @@ class PhidgetInterface:
     @staticmethod
     def get_calibrated_forces(vertical_axis: VerticalAxis):
         """Returns tared force (raw voltage × coefficient − zero offset)"""
-        return PhidgetInterface._voltages[vertical_axis.value] * PhidgetInterface._coefficients[vertical_axis.value] - PhidgetInterface._zero_offsets[vertical_axis.value]
+        return -(PhidgetInterface._voltages[vertical_axis.value] * PhidgetInterface._coefficients[vertical_axis.value] - PhidgetInterface._zero_offsets[vertical_axis.value])
