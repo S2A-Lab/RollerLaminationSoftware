@@ -297,7 +297,11 @@ class MacroControlWidget(QWidget):
 
 
     def __save_macro_btn_clicked(self):
-        filename = QFileDialog.getSaveFileName()
+        filename = QFileDialog.getSaveFileName(
+            None,
+            "Save File",
+            "",
+            "XML File (*.xml);;All Files (*)")
         if len(filename[0]) > 0:
             macro_steps_to_xml(self.__step_sequence,filename[0])
 

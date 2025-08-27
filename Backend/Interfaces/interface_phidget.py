@@ -9,7 +9,7 @@ class PhidgetInterface:
 
     _inputs = []
     _voltages = [0.0 for _ in channels]
-    _coefficients = [1.614167101957641e+05, 3.202322168529868e+05]
+    _coefficients = [32814849.8564402/1000*9.81, 32971316.2126073/1000*9.81]
     _zero_offsets = [0.0 for _ in channels]
     _sampling_interval = 8
     _connected = False

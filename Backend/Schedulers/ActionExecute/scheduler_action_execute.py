@@ -15,7 +15,7 @@ class ActuatorsControllerState(Enum):
     END = 2
 
 class ActionExecuteScheduler:
-    __sampling_time = 10 # [ms]
+    __sampling_time = 30 # [ms]
 
     __vertical_target_forces = [0.0, 0.0]
     __vertical_target_positions = [0.0, 0.0]

@@ -42,13 +42,11 @@ class ActionSetPIDWidget(QWidget):
     def __ilim_input_changed(self):
         self.action.ilim = self.ILimInput.value()
 
-    def __kdlim_input_changed(self):
-        self.action.kdlim = self.KdInput.value()
-
     def __olim_input_changed(self):
         self.action.out_limit = self.OutLimInput.value()
 
     def load_action(self, action: MacroStep.ActionChangeVerticalPIDParams):
+        self.action = action
         self.AxisComboBox.setCurrentIndex(action.axis.value)
         self.KpInput.setValue(action.kp)
         self.KiInput.setValue(action.ki)
