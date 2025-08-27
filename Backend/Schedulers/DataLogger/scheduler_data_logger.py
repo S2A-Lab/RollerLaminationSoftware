@@ -186,7 +186,7 @@ class DataLoggerScheduler:
 
                 # Log controller modes
                 for i, mode in enumerate(controller_modes):
-                    DataLoggerScheduler.controller_modes[i].update_data(timestamp, mode)
+                    DataLoggerScheduler.controller_modes[i].update_data(timestamp, mode.value)
 
                 # Log horizontal position
                 DataLoggerScheduler.horizontal_position.update_data(timestamp, HorizontalStageInterface.get_position())
